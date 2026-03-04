@@ -1,0 +1,182 @@
+---
+title: Installation
+description: Install Philo and set up your first journal vault
+---
+
+Philo is a desktop application built with Tauri v2. Follow these steps to get started.
+
+## Prerequisites
+
+Before installing Philo, ensure you have:
+
+- **Operating system**: macOS, Windows, or Linux
+- **Anthropic API key**: Required for widget generation ([get one here](https://console.anthropic.com/))
+- **Obsidian vault** (optional): If you want to use Philo with an existing Obsidian vault
+
+<Note>
+  While Philo can detect and integrate with Obsidian vaults, it works perfectly as a standalone journaling app.
+</Note>
+
+## Download Philo
+
+### From releases
+
+Download the latest release for your platform:
+
+1. Visit the [Philo releases page](https://github.com/ComputelessComputer/philo/releases)
+2. Download the appropriate installer:
+   - **macOS**: `.dmg` file
+   - **Windows**: `.msi` or `.exe` installer
+   - **Linux**: `.AppImage` or `.deb` package
+3. Run the installer and follow the prompts
+
+### Build from source
+
+If you prefer to build from source:
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/ComputelessComputer/philo.git
+    cd philo
+    ```
+  </Step>
+  
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    # or
+    bun install
+    ```
+  </Step>
+  
+  <Step title="Build the application">
+    ```bash
+    npm run tauri build
+    # or
+    bun run tauri build
+    ```
+  </Step>
+  
+  <Step title="Find your built app">
+    The application will be in `src-tauri/target/release/bundle/`
+  </Step>
+</Steps>
+
+<Note>
+  Building from source requires Rust and platform-specific build tools. See the [Tauri prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for details.
+</Note>
+
+## First launch
+
+When you launch Philo for the first time, you'll see an onboarding modal.
+
+### Set up your vault
+
+<Steps>
+  <Step title="Choose vault location">
+    Click **Choose...** to select where Philo will store your journal files.
+    
+    - If you have an existing Obsidian vault, select its root directory
+    - Otherwise, create a new folder for your journal
+    
+    <Note>
+      Philo will automatically detect existing Obsidian vaults on your system and show them as quick-select options.
+    </Note>
+  </Step>
+  
+  <Step title="Configure folder structure">
+    Set up your vault's folder organization:
+    
+    - **Daily logs folder** (required): Where daily notes are stored (default: `Daily Notes`)
+    - **Excalidraw folder** (optional): For diagram files (default: `Excalidraw`)
+    - **Assets folder** (optional): For images and attachments (default: `assets`)
+    
+    If you selected an Obsidian vault, Philo will auto-detect these folders from your vault configuration.
+  </Step>
+  
+  <Step title="Complete setup">
+    Click **Start** to create the folder structure and initialize your journal.
+  </Step>
+</Steps>
+
+### Configure your API key
+
+To enable widget generation:
+
+1. Press **⌘,** (Cmd+Comma) to open Settings
+2. Enter your Anthropic API key in the **API Key** field
+3. Close the settings modal
+
+<Warning>
+  Your API key is stored locally in `$APPDATA/philo/settings.json`. It's never sent anywhere except directly to Anthropic's API for widget generation.
+</Warning>
+
+## File storage
+
+Philo stores all data locally as markdown files:
+
+```
+$APPDATA/philo/
+├── settings.json          # App settings and API key
+├── library.json           # Widget library (legacy)
+└── journal/               # Your daily notes (or configured location)
+    ├── 2026-03-01.md
+    ├── 2026-03-02.md
+    ├── 2026-03-03.md
+    └── library/           # Saved widget components
+        ├── calorie-tracker-abc123.component.md
+        └── habit-chart-def456.component.md
+```
+
+### Platform-specific locations
+
+- **macOS**: `~/Library/Application Support/philo/`
+- **Windows**: `%APPDATA%\philo\`
+- **Linux**: `~/.local/share/philo/`
+
+<Note>
+  If you configure Philo to use an Obsidian vault, daily notes will be stored in your vault's daily logs folder instead of the default location.
+</Note>
+
+## Updating Philo
+
+Philo includes an auto-updater for desktop platforms:
+
+1. When an update is available, you'll see a banner at the top of the app
+2. Click the banner to download and install the update
+3. Restart the app to complete the update
+
+<Note>
+  The auto-updater is implemented using `@tauri-apps/plugin-updater` and only works on desktop platforms (macOS, Windows, Linux).
+</Note>
+
+## Troubleshooting
+
+### Philo won't launch
+
+- **macOS**: If you see a security warning, go to System Preferences → Security & Privacy and click "Open Anyway"
+- **Windows**: Ensure you have the [WebView2 runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) installed
+- **Linux**: Make sure the AppImage is executable (`chmod +x Philo.AppImage`)
+
+### Can't find my vault
+
+If Philo doesn't detect your Obsidian vault:
+
+1. Press **⌘,** to open Settings
+2. Click the gear icon to access advanced settings
+3. Manually select your vault directory using the **Choose...** button
+
+### Widget generation fails
+
+- Verify your Anthropic API key is correctly entered in Settings (⌘,)
+- Check that you have API credits available in your Anthropic account
+- Ensure you have an active internet connection
+
+## Next steps
+
+Now that Philo is installed, learn how to use it effectively:
+
+<Card title="Quickstart guide" icon="rocket" href="/quickstart">
+  Learn the basics and generate your first widget
+</Card>

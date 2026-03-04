@@ -1,0 +1,166 @@
+---
+title: 'Journaling'
+description: 'Daily note-taking with rich text editing, markdown support, and cross-platform sync'
+---
+
+Philo's journaling system provides a structured daily note-taking experience with powerful editing capabilities and automatic organization.
+
+## Daily Notes
+
+Each journal entry is stored as a daily note with a date identifier (YYYY-MM-DD format). Notes are automatically organized and can be accessed by date.
+
+### Note Structure
+
+```typescript
+interface DailyNote {
+  date: string;        // YYYY-MM-DD format
+  content: string;     // JSON-serialized editor content
+  city?: string;       // Optional location data
+}
+```
+
+## Rich Text Editor
+
+Philo uses Tiptap (ProseMirror-based) for a powerful editing experience with extensive formatting capabilities.
+
+### Supported Features
+
+<CardGroup cols={2}>
+  <Card title="Text Formatting" icon="text">
+    Bold, italic, underline, strikethrough, highlighting, and inline code
+  </Card>
+  <Card title="Structure" icon="list">
+    Headings (H1-H6), paragraphs, bullet lists, numbered lists, and task lists
+  </Card>
+  <Card title="Tables" icon="table">
+    Resizable tables with headers and cells
+  </Card>
+  <Card title="Links & Images" icon="link">
+    Autolink detection, image drag-and-drop, and paste support
+  </Card>
+</CardGroup>
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘/Ctrl + A` | Select all content |
+| `⌘/Ctrl + L` | Toggle task list |
+| `Backspace` | Convert heading to paragraph (at start of line) |
+| `⌘/Ctrl + Click` | Open links |
+
+## Editor Configuration
+
+The editor is configured in `src/components/journal/EditableNote.tsx` with these extensions:
+
+```typescript
+const editor = useEditor({
+  extensions: [
+    StarterKit.configure({
+      heading: { levels: [1, 2, 3, 4, 5, 6] },
+      listKeymap: false,
+      paragraph: false,
+    }),
+    CustomParagraph,
+    Image.configure({ inline: true, allowBase64: false }),
+    Underline,
+    Placeholder,
+    Link.configure({ openOnClick: false, autolink: true }),
+    TaskList,
+    CustomTaskItem.configure({ nested: true }),
+    Table.configure({ resizable: true }),
+    Highlight,
+    HashtagExtension,
+    ExcalidrawExtension,
+    WidgetExtension,
+    FileHandler,
+  ],
+});
+```
+
+## Auto-Save
+
+Changes are automatically saved with a 500ms debounce to prevent excessive writes:
+
+```typescript
+const saveDebounced = useDebounceCallback((jsonStr: string) => {
+  const updated = { ...noteRef.current, content: jsonStr };
+  selfUpdateRef.current = true;
+  if (onSaveRef.current) {
+    onSaveRef.current(updated);
+  } else {
+    saveDailyNote(updated).catch(console.error);
+  }
+}, 500);
+```
+
+<Note>
+The editor stores content in JSON format for reliable serialization and deserialization.
+</Note>
+
+## Storage
+
+Notes are persisted using Tauri's filesystem APIs with JSON serialization:
+
+```typescript
+// Save a daily note
+await saveDailyNote({ 
+  date: "2026-03-04", 
+  content: JSON.stringify(editorJSON) 
+});
+
+// Load a daily note
+const note = await loadDailyNote("2026-03-04");
+```
+
+## Link Handling
+
+Links can be opened with `⌘/Ctrl + Click`:
+
+```typescript
+Link.extend({
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handleClick(_view, _pos, event) {
+            if (!(event.metaKey || event.ctrlKey)) return false;
+            const anchor = (event.target as HTMLElement).closest("a");
+            if (anchor && anchor.href) {
+              event.preventDefault();
+              openUrl(anchor.href);
+              return true;
+            }
+            return false;
+          },
+        },
+      }),
+    ];
+  },
+})
+```
+
+<Warning>
+Images use asset URLs resolved through `resolveAssetUrl()` rather than base64 encoding for better performance.
+</Warning>
+
+## Bubble Menu
+
+The editor includes a contextual bubble menu (`EditorBubbleMenu`) that appears on text selection, providing quick access to formatting options.
+
+## Best Practices
+
+<Steps>
+  <Step title="Use structured content">
+    Leverage headings, lists, and tables to organize information clearly
+  </Step>
+  <Step title="Tag with hashtags">
+    Use the HashtagExtension to create searchable tags like #project or #ideas
+  </Step>
+  <Step title="Embed rich content">
+    Combine text with images, drawings (Excalidraw), and AI-generated widgets
+  </Step>
+  <Step title="Create task lists">
+    Use task lists for actionable items that can roll over to future days
+  </Step>
+</Steps>

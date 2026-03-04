@@ -1,0 +1,272 @@
+---
+title: 'Recurring Tasks'
+description: 'Automatically recreate tasks on a schedule with recurrence tags'
+---
+
+Recurring tasks allow you to define tasks that repeat on a schedule. When you complete a recurring task, Philo automatically recreates it on the next due date.
+
+## Recurrence Tags
+
+Add a hashtag to any task to make it recurring:
+
+```markdown
+- [ ] Morning meditation #daily
+- [ ] Review weekly goals #weekly  
+- [ ] Pay rent #monthly
+- [ ] Water plants #3days
+- [ ] Team sync #2weeks
+```
+
+### Supported Patterns
+
+Philo recognizes these recurrence patterns:
+
+<CardGroup cols={2}>
+  <Card title="Keywords" icon="calendar">
+    `#daily`, `#weekly`, `#monthly`
+  </Card>
+  <Card title="Custom Intervals" icon="clock">
+    `#2days`, `#3weeks`, `#2months`, etc.
+  </Card>
+</CardGroup>
+
+## Pattern Matching
+
+The recurrence parser uses this regex:
+
+```typescript
+const RECURRENCE_TAG = /#(daily|weekly|monthly|(\d+)(days?|weeks?|months?))\b/i;
+```
+
+### Examples
+
+| Pattern | Matches |
+|---------|----------|
+| `#daily` | Every 1 day |
+| `#weekly` | Every 7 days |
+| `#monthly` | Every 30 days |
+| `#2days` or `#2day` | Every 2 days |
+| `#3weeks` or `#3week` | Every 21 days |
+| `#2months` or `#2month` | Every 60 days |
+
+<Note>
+Both singular and plural forms are accepted (e.g., `#2day` and `#2days`).
+</Note>
+
+## Parsing Logic
+
+```typescript
+interface Recurrence {
+  intervalDays: number;
+  tag: string;
+}
+
+export function parseRecurrence(text: string): Recurrence | null {
+  const match = text.match(RECURRENCE_TAG);
+  if (!match) return null;
+
+  const tag = match[0];
+  const keyword = match[1].toLowerCase();
+
+  // Handle keyword patterns
+  if (keyword === "daily") return { intervalDays: 1, tag };
+  if (keyword === "weekly") return { intervalDays: 7, tag };
+  if (keyword === "monthly") return { intervalDays: 30, tag };
+
+  // Handle custom intervals
+  const n = parseInt(match[2], 10);
+  const unit = match[3].toLowerCase();
+
+  if (unit.startsWith("day")) return { intervalDays: n, tag };
+  if (unit.startsWith("week")) return { intervalDays: n * 7, tag };
+  if (unit.startsWith("month")) return { intervalDays: n * 30, tag };
+
+  return null;
+}
+```
+
+## How Recurrence Works
+
+<Steps>
+  <Step title="Complete the task">
+    Check off a task with a recurrence tag (e.g., `- [x] Exercise #daily`)
+  </Step>
+  <Step title="Task rollover scans">
+    When `rolloverTasks()` runs, it scans past notes for completed recurring tasks
+  </Step>
+  <Step title="Calculate next due date">
+    Adds the interval to the completion date
+  </Step>
+  <Step title="Check if due">
+    If next due date ≤ today, recreates the task as unchecked
+  </Step>
+  <Step title="Add to today">
+    Prepends the recreated task to today's note
+  </Step>
+</Steps>
+
+## Implementation
+
+Recurring tasks are handled during the rollover process:
+
+```typescript
+// Extract checked tasks with recurrence tags
+function extractCheckedRecurringTasks(content: string): string[] {
+  const lines = content.split("\n");
+  const tasks: string[] = [];
+
+  for (const line of lines) {
+    const match = line.match(CHECKED_TASK);
+    if (match && parseRecurrence(match[2])) {
+      tasks.push(match[2]);
+    }
+  }
+
+  return tasks;
+}
+
+// During rollover
+const checkedRecurring = extractCheckedRecurringTasks(markdown);
+for (const taskText of checkedRecurring) {
+  const recurrence = parseRecurrence(taskText)!;
+  const nextDue = addDaysToDate(date, recurrence.intervalDays);
+  if (nextDue <= today && !taskMap.has(taskText)) {
+    taskMap.set(taskText, { indent: "", text: taskText });
+  }
+}
+```
+
+### Date Calculation
+
+```typescript
+function dateToString(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function addDaysToDate(dateStr: string, days: number): string {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  return dateToString(d);
+}
+```
+
+<Warning>
+Months are approximated as 30 days. For precise monthly recurrence, consider using a calendar-based system.
+</Warning>
+
+## Behavior Examples
+
+### Daily Task
+
+<CodeGroup>
+```markdown Monday (March 3)
+- [x] Morning meditation #daily
+```
+
+```markdown Tuesday (March 4)
+- [ ] Morning meditation #daily
+
+Other content...
+```
+</CodeGroup>
+
+### Weekly Task
+
+<CodeGroup>
+```markdown Monday (March 3)
+- [x] Review weekly goals #weekly
+```
+
+```markdown Next Monday (March 10)
+- [ ] Review weekly goals #weekly
+
+Other content...
+```
+</CodeGroup>
+
+### Custom Interval
+
+<CodeGroup>
+```markdown Monday (March 3)
+- [x] Deep work session #3days
+```
+
+```markdown Thursday (March 6)
+- [ ] Deep work session #3days
+
+Other content...
+```
+</CodeGroup>
+
+## Deduplication
+
+Recurring tasks are deduplicated like regular tasks:
+
+```typescript
+if (nextDue <= today && !taskMap.has(taskText)) {
+  taskMap.set(taskText, { indent: "", text: taskText });
+}
+```
+
+This prevents the same recurring task from appearing multiple times if rollover runs multiple times.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Be specific" icon="bullseye">
+    Use descriptive task text: `Morning workout #daily` not just `Workout #daily`
+  </Card>
+  <Card title="Choose appropriate intervals" icon="gauge">
+    Match recurrence to actual needs—don't make everything daily
+  </Card>
+  <Card title="Review periodically" icon="clipboard-check">
+    Check recurring tasks monthly to remove outdated ones
+  </Card>
+  <Card title="Use consistent tags" icon="tags">
+    Stick with the same recurrence tag to track task history
+  </Card>
+</CardGroup>
+
+## Advanced Patterns
+
+### Multiple Tags
+
+You can combine recurrence with other tags:
+
+```markdown
+- [ ] Gym workout #daily #health #morning
+- [ ] Team standup #weekly #work #meeting
+```
+
+Only the recurrence tag affects rollover behavior.
+
+### Skipping Recurrence
+
+To stop a recurring task from repeating:
+
+1. Complete it as usual: `- [x] Old habit #daily`
+2. Remove the recurrence tag: `- [x] Old habit`
+3. The task won't be recreated
+
+<Tip>
+Use recurrence tags for habits and routines you want to maintain consistently. For one-time tasks, use regular task lists.
+</Tip>
+
+## Limitations
+
+<Warning>
+- Monthly recurrence is approximated as 30 days
+- Tasks don't account for weekends or holidays
+- No support for complex patterns like "every Monday" or "first of the month"
+- Recurrence is based on completion date, not original due date
+</Warning>
+
+## Future Enhancements
+
+Potential improvements to the recurrence system:
+
+- Calendar-aware monthly recurrence
+- Weekday-specific patterns (e.g., #weekdays, #mondays)
+- Skip weekends option
+- Recurrence based on original schedule vs. completion date
+- Custom recurrence rules with more complex logic

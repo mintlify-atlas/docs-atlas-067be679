@@ -1,80 +1,158 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Philo in 5 minutes
 ---
 
-## Get started in three steps
+Get up and running with Philo in just a few steps. This guide will take you from installation to creating your first AI-powered widget.
 
-Get your documentation site running locally and make your first customization.
+## Before you begin
 
-### Step 1: Set up your local environment
+<Note>
+  Make sure you have an Anthropic API key ready. You can get one from [console.anthropic.com](https://console.anthropic.com/).
+</Note>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+## Installation
+
+<Steps>
+  <Step title="Download Philo">
+    Download the latest release for your platform from the [GitHub releases page](https://github.com/ComputelessComputer/philo/releases/latest):
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    - **macOS**: Download the `.dmg` file
+    - **Windows**: Download the `.msi` or `.exe` installer
+    - **Linux**: Download the `.AppImage` or `.deb` package
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    Install the application following your platform's standard installation process.
+  </Step>
+  
+  <Step title="Add your API key">
+    When you first launch Philo, you'll see an onboarding screen:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    1. Click through the introduction screens
+    2. Enter your Anthropic API key when prompted
+    3. Click **Continue** to start journaling
+    
+    You can also add or update your API key later by opening **Settings** (⌘,).
+  </Step>
+  
+  <Step title="Choose your storage location">
+    Philo stores your journal as markdown files on your local disk. You can choose where to store them:
+    
+    - **Default**: `$APPDATA/philo/journal/` (or equivalent on your OS)
+    - **Custom vault**: Choose any folder, including cloud-synced directories like Dropbox or iCloud
+    - **Obsidian vault**: Point to an existing Obsidian vault to use both apps
+    
+    <Tip>
+      If you select an Obsidian vault, Philo will automatically configure itself to be compatible with Obsidian's file format.
+    </Tip>
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Create your first note
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+After setup, you'll see today's note with an empty editor.
 
-### Step 3: Go live
+<Steps>
+  <Step title="Write some text">
+    Click in the editor and start writing. The editor supports:
+    
+    - **Bold** (⌘B), *italic* (⌘I), and other text formatting
+    - Headings, lists, and tables
+    - Links and images (paste or drag-and-drop)
+    - Code blocks with syntax highlighting
+    
+    Your notes are automatically saved as you type.
+  </Step>
+  
+  <Step title="Add tasks">
+    Create tasks using checkbox syntax:
+    
+    ```markdown
+    - [ ] Review project proposal
+    - [ ] Call dentist
+    - [ ] Meditate #daily
+    ```
+    
+    Unchecked tasks will automatically roll over to today when you reopen the app.
+  </Step>
+  
+  <Step title="Generate your first widget">
+    Now for the fun part — generate an AI-powered widget:
+    
+    1. Type a description of what you want, like:
+       ```
+       calorie tracker for today
+       ```
+    2. Select the text
+    3. Press **⌘↵** (Cmd+Enter)
+    
+    Philo will generate an interactive widget and embed it in your note. You can interact with it immediately — add calories, track your total, and see the results update in real-time.
+  </Step>
+</Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Try more widgets
+
+Here are some widget ideas to try:
+
+<CardGroup cols={2}>
+  <Card title="Habit tracker" icon="calendar-check">
+    ```
+    weekly habit tracker for exercise, reading, meditation
+    ```
+  </Card>
+  
+  <Card title="Mood logger" icon="face-smile">
+    ```
+    mood logger with emoji scale and notes
+    ```
+  </Card>
+  
+  <Card title="Countdown timer" icon="clock">
+    ```
+    countdown to my vacation on July 15th
+    ```
+  </Card>
+  
+  <Card title="Progress tracker" icon="chart-line">
+    ```
+    progress tracker for writing 50,000 words
+    ```
+  </Card>
+</CardGroup>
+
+## Navigate your timeline
+
+Philo organizes notes in a timeline:
+
+- **Tomorrow**: Plan ahead
+- **Today**: Your current note (quick access with the floating button)
+- **Past**: Scroll through previous entries
+
+Press **⌘F** to search across all your notes.
+
+## Save widgets to your library
+
+If you generate a widget you want to reuse:
+
+1. Click the **Save** icon on the widget
+2. Give it a title and description
+3. Press **⌘J** to open your library anytime and insert saved widgets
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Core features" icon="sparkles" href="/features/journaling">
+    Explore the timeline, tasks, and AI widgets in depth
+  </Card>
+  
+  <Card title="Keyboard shortcuts" icon="keyboard" href="/guides/keyboard-shortcuts">
+    Learn all the shortcuts to work faster
+  </Card>
+  
+  <Card title="Data storage" icon="database" href="/guides/data-storage">
+    Understand how your journal is stored and organized
+  </Card>
+  
+  <Card title="Use cases" icon="lightbulb" href="/use-cases/daily-journaling">
+    See how others use Philo for journaling, habits, and projects
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

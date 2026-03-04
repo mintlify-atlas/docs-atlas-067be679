@@ -1,0 +1,233 @@
+---
+title: Settings
+description: Configure Philo's API key, storage location, and file organization
+---
+
+Access settings by pressing **⌘,** (Cmd+Comma) or selecting **Settings...** from the application menu.
+
+## API Configuration
+
+### Anthropic API Key
+
+Required for the Build feature (⌘↵) to generate AI widgets.
+
+**How to get an API key:**
+1. Sign up at [console.anthropic.com](https://console.anthropic.com)
+2. Navigate to API Keys
+3. Create a new key
+4. Copy the key (starts with `sk-ant-`)
+5. Paste into Philo settings
+
+**Storage:**
+Your API key is stored locally in:
+```
+~/Library/Application Support/philo/settings.json
+```
+
+It never leaves your device except when making direct requests to Anthropic's API.
+
+**Location:** `src/services/settings.ts:59-68`
+
+## Vault Settings
+
+### Vault Location
+
+The root directory for your notes. Useful for:
+- Integration with Obsidian vaults
+- Cloud sync via Dropbox, iCloud, or other services
+- Custom organization structures
+
+**Default:**
+```
+~/Library/Application Support/philo/journal/
+```
+
+**To change:**
+1. Open Settings (⌘,)
+2. Click **Choose...** next to Vault Location
+3. Select your desired directory
+4. Click **Save**
+
+**Reset to default:**
+Click "Reset to default" below the vault path.
+
+**Location:** `src/services/paths.ts:43-60`
+
+### Daily Logs Folder
+
+Subfolder within your vault for daily journal entries.
+
+**Default:** `""` (root of vault)
+**Common value:** `"Daily Notes"`
+
+**Example structure:**
+```
+Vault/
+├── Daily Notes/
+│   ├── 2026-03-04.md
+│   ├── 2026-03-03.md
+│   └── 2026-03-02.md
+├── Projects/
+└── Archive/
+```
+
+**Location:** `src/services/settings.ts:85-88`
+
+### Excalidraw Folder (Optional)
+
+Where Excalidraw drawings are stored when using `![[drawing.excalidraw]]` embeds.
+
+**Common values:**
+- `"Excalidraw"`
+- `"Drawings"`
+- Leave empty to disable Excalidraw support
+
+**Location:** `src/services/settings.ts:90-93`
+
+### Assets Folder (Optional)
+
+Where pasted images and other media files are saved.
+
+**Default:** `"assets"`
+
+**Example:**
+When you paste an image, it's saved as:
+```
+{vaultDir}/assets/image-1234567890.png
+```
+
+And referenced in markdown as:
+```markdown
+![](assets/image-1234567890.png)
+```
+
+**Location:** `src/services/settings.ts:95-98`
+
+## File Organization
+
+### Filename Pattern
+
+Defines how daily note files are named and organized.
+
+**Available tokens:**
+- `{YYYY}` - Four-digit year (e.g., `2026`)
+- `{MM}` - Two-digit month (e.g., `03`)
+- `{DD}` - Two-digit day (e.g., `04`)
+
+**Presets:**
+
+**Flat** - All files in one folder
+```
+{YYYY}-{MM}-{DD}
+→ 2026-03-04.md
+```
+
+**By year** - Organized by year
+```
+{YYYY}/{YYYY}-{MM}-{DD}
+→ 2026/2026-03-04.md
+```
+
+**By year + month** - Organized by year and month
+```
+{YYYY}/{MM}/{YYYY}-{MM}-{DD}
+→ 2026/03/2026-03-04.md
+```
+
+**Custom patterns:**
+You can create any pattern using the tokens and `/` for subdirectories:
+
+```
+{YYYY}/Q1/{YYYY}-{MM}-{DD}  → 2026/Q1/2026-03-04.md
+Journal/{YYYY}-{MM}/{DD}    → Journal/2026-03/04.md
+```
+
+<Warning>
+Changing the filename pattern does not rename existing files. New entries will use the new pattern, but old files remain at their original paths.
+</Warning>
+
+**Location:** `src/services/paths.ts:124-140`
+
+## Settings Storage
+
+### Settings File Location
+
+All settings are stored in a JSON file:
+
+**Development:**
+```
+~/Library/Application Support/com.philo.dev/settings.json
+```
+
+**Production:**
+```
+~/Library/Application Support/philo/settings.json
+```
+
+**Location:** `src/services/settings.ts:16-34`
+
+### Settings Schema
+
+```typescript
+interface Settings {
+  anthropicApiKey: string;        // Your Anthropic API key
+  journalDir: string;             // Computed journal path
+  filenamePattern: string;        // Pattern for daily note files
+  vaultDir: string;               // Root vault directory
+  dailyLogsFolder: string;        // Subfolder for journal entries
+  excalidrawFolder: string;       // Subfolder for drawings
+  assetsFolder: string;           // Subfolder for images/media
+  hasCompletedOnboarding: boolean; // Onboarding state
+}
+```
+
+**Location:** `src/services/settings.ts:5-14`
+
+### Default Values
+
+```json
+{
+  "anthropicApiKey": "",
+  "journalDir": "",
+  "filenamePattern": "{YYYY}-{MM}-{DD}",
+  "vaultDir": "",
+  "dailyLogsFolder": "",
+  "excalidrawFolder": "",
+  "assetsFolder": "",
+  "hasCompletedOnboarding": false
+}
+```
+
+**Location:** `src/services/settings.ts:20-29`
+
+## Obsidian Integration
+
+### Auto-Detection
+
+When you select a vault directory, Philo automatically detects Obsidian configuration:
+
+**Detects:**
+- Daily notes folder from `.obsidian/daily-notes.json`
+- Filename pattern (converts Obsidian format to Philo format)
+- Excalidraw folder from `.obsidian/plugins/obsidian-excalidraw-plugin/data.json`
+- Assets folder from `.obsidian/app.json`
+
+**Location:** `src/components/settings/SettingsModal.tsx:77-93`
+
+### Compatibility
+
+Philo's markdown format is compatible with Obsidian:
+- Standard markdown syntax
+- Frontmatter support
+- Image embeds
+- Excalidraw embeds
+- Task lists
+
+Widgets are stored as HTML and won't render in Obsidian, but they won't break your notes either.
+
+## Keyboard Shortcuts
+
+**Save settings:** ⌘↵ (Cmd+Enter)  
+**Cancel:** Esc
+
+**Location:** `src/components/settings/SettingsModal.tsx:108-114`

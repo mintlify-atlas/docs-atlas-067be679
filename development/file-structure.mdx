@@ -1,0 +1,457 @@
+---
+title: File Structure
+description: Complete directory organization and file layout of the Philo codebase
+---
+
+## Project Root
+
+```
+philo/
+├── src/                      # React frontend source code
+├── src-tauri/                # Rust backend source code
+├── public/                   # Static assets (served at /)
+├── apps/                     # Additional applications (landing page)
+├── vendor/                   # Third-party code (hyprnote)
+├── scripts/                  # Build and automation scripts
+├── .vscode/                  # VS Code workspace settings
+├── .codex/                   # Project metadata
+├── package.json              # Frontend dependencies and scripts
+├── vite.config.ts            # Vite build configuration
+├── tsconfig.json             # TypeScript compiler options
+├── tsconfig.node.json        # TypeScript config for Node scripts
+├── tailwind.config.js        # Tailwind CSS configuration
+├── postcss.config.js         # PostCSS configuration
+├── dprint.json               # Code formatting rules
+└── README.md                 # Project documentation
+```
+
+## Frontend Structure (`src/`)
+
+The React frontend is organized by feature:
+
+```
+src/
+├── main.tsx                  # Application entry point
+├── App.tsx                   # Root App component
+├── App.css                   # Global styles
+├── vite-env.d.ts             # Vite environment types
+│
+├── components/               # React components
+│   ├── UpdateBanner.tsx      # App update notification banner
+│   │
+│   ├── editor/               # TipTap editor components
+│   │   ├── Editor.css        # Editor-specific styles
+│   │   ├── EditorBubbleMenu.tsx  # Floating formatting menu
+│   │   └── extensions/       # Custom TipTap extensions
+│   │       ├── clipboard.ts  # Enhanced clipboard handling
+│   │       ├── list-keymap.ts  # Custom list keyboard shortcuts
+│   │       ├── excalidraw/   # Excalidraw diagram extension
+│   │       │   ├── ExcalidrawExtension.ts  # Node definition
+│   │       │   └── ExcalidrawView.tsx      # React renderer
+│   │       ├── hashtag/      # Hashtag syntax extension
+│   │       │   └── HashtagExtension.ts
+│   │       ├── paragraph/    # Custom paragraph node
+│   │       │   └── ParagraphExtension.ts
+│   │       ├── task-item/    # Enhanced task items
+│   │       │   └── TaskItemNode.ts
+│   │       └── widget/       # AI-generated widgets
+│   │           ├── WidgetExtension.ts  # Node definition
+│   │           ├── WidgetView.tsx      # React renderer
+│   │           ├── catalog.ts          # Widget templates
+│   │           └── registry.tsx        # Component registry
+│   │
+│   ├── journal/              # Journal/note components
+│   │   └── EditableNote.tsx  # Main note editor component
+│   │
+│   ├── layout/               # Layout components
+│   │   └── AppLayout.tsx     # Main application layout
+│   │
+│   ├── library/              # Library/search components
+│   │   └── LibraryDrawer.tsx # Search and collections UI
+│   │
+│   ├── onboarding/           # First-run experience
+│   │   └── OnboardingModal.tsx  # Vault setup wizard
+│   │
+│   ├── settings/             # Settings UI
+│   │   └── SettingsModal.tsx # Application settings dialog
+│   │
+│   └── shared/               # Shared/utility components
+│       └── VaultPathMarquee.tsx  # Scrolling vault path display
+│
+├── services/                 # Business logic and Tauri API wrappers
+│   ├── storage.ts            # Daily note CRUD operations
+│   ├── library.ts            # Search and library management
+│   ├── obsidian.ts           # Obsidian vault integration
+│   ├── images.ts             # Image handling and asset URLs
+│   ├── excalidraw.ts         # Excalidraw data compression
+│   ├── generate.ts           # Widget generation (AI API)
+│   ├── tasks.ts              # Task extraction and manipulation
+│   ├── format.ts             # Date/time formatting utilities
+│   ├── paths.ts              # Path resolution and normalization
+│   ├── settings.ts           # App settings persistence
+│   └── updater.ts            # Auto-update checks
+│
+├── hooks/                    # Custom React hooks
+│   ├── useCurrentDate.ts     # Current date/time hook
+│   └── useTimezoneCity.ts    # Timezone detection hook
+│
+├── lib/                      # Utility libraries
+│   └── markdown.ts           # Markdown parsing utilities
+│
+├── types/                    # TypeScript type definitions
+│   └── note.ts               # Note and vault types
+│
+└── assets/                   # Static assets (images, fonts)
+```
+
+## Backend Structure (`src-tauri/`)
+
+The Rust backend is minimal and focused:
+
+```
+src-tauri/
+├── src/
+│   ├── main.rs               # Application entry point (85 lines)
+│   └── lib.rs                # Core logic and Tauri commands (800+ lines)
+│       ├── Window Management
+│       │   └── set_window_opacity()  # macOS opacity control
+│       ├── File I/O
+│       │   ├── read_markdown_file()  # Read markdown content
+│       │   └── write_markdown_file() # Write markdown with dir creation
+│       ├── Vault Operations
+│       │   ├── detect_obsidian_settings()  # Auto-detect vault config
+│       │   ├── bootstrap_obsidian_vault()  # Initialize vault structure
+│       │   └── scan_obsidian_vaults()      # Discover vaults
+│       ├── Search
+│       │   ├── search_markdown()     # Full-text search (SQLite FTS5)
+│       │   ├── ensure_search_schema()  # Database setup
+│       │   ├── index_markdown_files()  # Populate search index
+│       │   └── insert_search_doc()   # Add document to index
+│       ├── Menu Management
+│       │   └── create_app_menu()     # Build native menu
+│       └── Utilities
+│           ├── extend_fs_scope()     # Grant file system access
+│           ├── normalize_folder()    # Path normalization
+│           └── should_skip_dir()     # Filter directories
+│
+├── Cargo.toml                # Rust dependencies
+├── tauri.conf.json           # Tauri configuration
+├── build.rs                  # Build script (auto-generated)
+│
+├── capabilities/             # Tauri permission definitions
+│   └── default.json          # Default app capabilities
+│
+└── icons/                    # Application icons
+    ├── 32x32.png
+    ├── 128x128.png
+    ├── 128x128@2x.png
+    ├── icon.icns             # macOS icon bundle
+    ├── icon.ico              # Windows icon
+    ├── android/              # Android adaptive icons
+    └── ios/                  # iOS icon assets
+```
+
+## Key Files Explained
+
+### Frontend Entry Point
+
+**`src/main.tsx`**
+
+```typescript
+// Bootstrap React application
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+Imports global fonts and TipTap styles before mounting the App.
+
+### Root Component
+
+**`src/App.tsx`**
+
+```typescript
+// Root component - renders main layout
+import AppLayout from "./components/layout/AppLayout";
+
+function App() {
+  return <AppLayout />;
+}
+```
+
+Minimal root component delegates to AppLayout.
+
+### Main Editor
+
+**`src/components/journal/EditableNote.tsx`**
+
+The heart of Philo's editing experience:
+
+- Initializes TipTap editor with all extensions
+- Handles markdown ↔ JSON conversion
+- Debounced auto-save (500ms)
+- Image paste/drop handling
+- Link click handling (open in browser)
+- Custom keyboard shortcuts
+
+**Key Extensions Loaded**:
+
+1. StarterKit (headings, lists, bold, italic, etc.)
+2. CustomParagraph (markdown-friendly paragraphs)
+3. Image (inline images)
+4. Underline
+5. Placeholder
+6. Link (with click handling)
+7. FileHandler (drag-and-drop files)
+8. Highlight
+9. Table, TableRow, TableCell, TableHeader
+10. TaskList, CustomTaskItem
+11. CustomListKeymap
+12. ClipboardTextSerializer
+13. HashtagExtension
+14. WidgetExtension
+15. ExcalidrawExtension
+
+### Services Layer
+
+**`src/services/storage.ts`**
+
+Handles daily note operations:
+
+- `loadDailyNote(date)` - Load note for a specific date
+- `saveDailyNote(note)` - Save note to disk
+- `getDailyNotePath(date, vaultPath, folder, pattern)` - Compute file path
+
+**`src/services/library.ts`**
+
+Manages search and collections:
+
+- `searchMarkdown(query)` - Full-text search
+- `addToLibrary(widget)` - Save widget to library
+- `getLibrary()` - Load saved widgets
+- `removeFromLibrary(id)` - Delete widget
+
+**`src/services/obsidian.ts`**
+
+Obsidian vault integration:
+
+- `detectObsidianSettings(vaultPath)` - Auto-detect folder structure
+- `bootstrapObsidianVault(vaultPath, options)` - Create folders and config
+- `scanObsidianVaults(startDir)` - Discover vaults on disk
+
+All services wrap Tauri `invoke()` calls with proper error handling.
+
+### Backend Core
+
+**`src-tauri/src/lib.rs`**
+
+The Rust backend's main file (~800+ lines) contains:
+
+1. **Platform-specific code**
+   - macOS: Objective-C bindings for window opacity and process naming
+
+2. **File I/O commands**
+   - `read_markdown_file()` - Reads UTF-8 text files, returns None if not found
+   - `write_markdown_file()` - Creates parent directories, writes atomically
+
+3. **Obsidian integration**
+   - `detect_obsidian_settings()` - Parses `.obsidian/` config files
+   - `bootstrap_obsidian_vault()` - Creates folder structure and writes config
+   - `scan_obsidian_vaults()` - Recursively searches for `.obsidian` folders
+
+4. **Full-text search**
+   - `search_markdown()` - SQLite FTS5 queries with BM25 ranking
+   - `ensure_search_schema()` - Creates FTS5 tables if needed
+   - `index_markdown_files()` - Populates search index
+   - Incremental indexing based on file modification time
+
+5. **Utilities**
+   - `extend_fs_scope()` - Dynamically allows file system access
+   - `create_app_menu()` - Builds native menu bar
+   - Path normalization and directory filtering
+
+**`src-tauri/src/main.rs`**
+
+Minimal entry point that:
+
+- Sets up Tauri application
+- Registers all commands
+- Configures plugins (dialog, fs, process, opener, updater)
+- Creates menu and window
+
+## Additional Directories
+
+### Public Assets
+
+**`public/`**
+
+Static files served at the root URL:
+
+- Favicon
+- Meta images for social sharing
+- Any other static assets
+
+### Vendor Code
+
+**`vendor/hyprnote/`**
+
+Third-party code (TipTap styles and customizations) not available via npm.
+
+### Scripts
+
+**`scripts/`**
+
+Build automation scripts:
+
+- `tauri.mjs` - Custom Tauri CLI wrapper
+
+### Apps
+
+**`apps/landing/`**
+
+Separate landing page application (not part of desktop app).
+
+## Important Configuration Files
+
+### Tauri Configuration
+
+**`src-tauri/tauri.conf.json`**
+
+Defines:
+
+- App metadata (name, version, identifier)
+- Window properties (size, title bar style)
+- Build commands (dev and production)
+- Security settings (CSP, asset protocol scope)
+- Plugin configuration (updater endpoint)
+- Bundle settings (icons, targets)
+
+### Package Configuration
+
+**`package.json`**
+
+Defines:
+
+- Frontend dependencies (React, TipTap, Tailwind, etc.)
+- Dev dependencies (Vite, TypeScript, Tauri CLI, etc.)
+- Scripts (dev, build, typecheck, fmt)
+- Project metadata (name, version, type: module)
+
+**`src-tauri/Cargo.toml`**
+
+Defines:
+
+- Rust dependencies (tauri, serde, rusqlite, etc.)
+- Platform-specific dependencies (objc for macOS)
+- Library configuration (crate types)
+- Package metadata (name, version, edition)
+
+### Build Configuration
+
+**`vite.config.ts`**
+
+Configures Vite for Tauri development:
+
+- React plugin for JSX
+- Fixed ports (1421 for dev server, 1422 for HMR)
+- Ignores src-tauri in watch mode
+- Disables clear screen to show Rust errors
+
+**`tsconfig.json`**
+
+TypeScript compiler options:
+
+- Strict mode enabled
+- ES2020 target with DOM types
+- Bundler module resolution
+- No unused locals/parameters
+- React JSX transform
+
+### Styling Configuration
+
+**`tailwind.config.js`**
+
+Tailwind CSS customization:
+
+- Custom color palette
+- Typography plugin for prose styling
+- Font family definitions
+- Responsive breakpoints
+
+**`postcss.config.js`**
+
+PostCSS plugins:
+
+- Tailwind CSS processing
+- Autoprefixer for vendor prefixes
+
+## File Naming Conventions
+
+### Frontend
+
+- **Components**: PascalCase with `.tsx` extension (`EditableNote.tsx`)
+- **Services**: camelCase with `.ts` extension (`storage.ts`)
+- **Hooks**: camelCase starting with `use` (`useCurrentDate.ts`)
+- **Types**: camelCase with `.ts` extension (`note.ts`)
+- **Styles**: PascalCase with `.css` extension matching component name
+
+### Backend
+
+- **Rust files**: snake_case with `.rs` extension (`lib.rs`, `main.rs`)
+- **Cargo packages**: kebab-case in `Cargo.toml`
+
+## Import Paths
+
+Philo uses relative imports (no path aliases configured):
+
+```typescript
+// Component imports
+import { EditableNote } from "./components/journal/EditableNote";
+
+// Service imports
+import { saveDailyNote } from "../../services/storage";
+
+// Tauri API imports
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+```
+
+## Build Outputs
+
+### Development
+
+- Frontend: Served from memory by Vite (no disk output)
+- Backend: Compiled to `src-tauri/target/debug/philo`
+
+### Production
+
+- Frontend: Bundled to `dist/` directory
+- Backend: Compiled to `src-tauri/target/release/philo`
+- App Bundle:
+  - macOS: `src-tauri/target/release/bundle/macos/Philo.app`
+  - Windows: `src-tauri/target/release/bundle/msi/Philo_<version>_x64.msi`
+  - Linux: `src-tauri/target/release/bundle/deb/philo_<version>_amd64.deb`
+
+## Git Ignored Files
+
+```
+node_modules/
+dist/
+target/
+.DS_Store
+*.log
+.env
+.env.local
+```
+
+## Next Steps
+
+- [Architecture Overview](/development/architecture) - Understand how components interact
+- [Tech Stack](/development/tech-stack) - Detailed dependency information
+- [Development Setup](/development/setup) - Set up your development environment

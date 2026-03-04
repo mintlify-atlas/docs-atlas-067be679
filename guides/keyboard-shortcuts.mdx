@@ -1,0 +1,81 @@
+---
+title: Keyboard Shortcuts
+description: Master Philo's keyboard shortcuts to streamline your journaling workflow
+---
+
+Philo provides keyboard shortcuts to help you work efficiently with your journal and widgets.
+
+## Core Shortcuts
+
+### Build Widget
+
+**⌘↵** (Cmd+Enter)
+
+Generate an AI widget from selected text. Select any text in your journal that describes what you want to build, then press ⌘↵ to create an interactive widget.
+
+```markdown
+Calorie tracker for today
+```
+
+Select the text above and press ⌘↵ to generate a calorie tracking widget inline.
+
+**Location:** `src/components/editor/extensions/widget/WidgetExtension.ts:118`
+
+### Widget Library
+
+**⌘J** (Cmd+J)
+
+Open the widget library drawer to browse, search, and reuse saved widgets. The library contains all widgets you've explicitly saved for reuse.
+
+**Location:** `src-tauri/src/lib.rs:795`
+
+### Settings
+
+**⌘,** (Cmd+Comma)
+
+Open the settings modal to configure:
+- Anthropic API key
+- Vault location
+- Daily logs folder
+- Filename pattern
+- Assets and Excalidraw folders
+
+**Location:** `src-tauri/src/lib.rs:791`
+
+### Global Search
+
+**⌘F** (Cmd+F)
+
+Search across all your journal notes. Returns matching files with highlighted snippets.
+
+**Navigation:**
+- **↓** (Arrow Down) - Move to next result
+- **↑** (Arrow Up) - Move to previous result  
+- **↵** (Enter) - Open selected result
+- **Esc** - Close search
+
+**Location:** `src-tauri/src/lib.rs:799`
+
+## Editor Shortcuts
+
+### Text Formatting
+
+When text is selected, the bubble menu appears with formatting options:
+
+- **Bold** - Make text bold
+- **Italic** - Make text italic  
+- **Strikethrough** - Strike through text
+- **Code** - Format as inline code
+
+### Settings Modal
+
+**⌘↵** (Cmd+Enter) - Save settings and close
+**Esc** - Close without saving
+
+## Platform Notes
+
+All shortcuts use:
+- **⌘** (Cmd) on macOS
+- **Ctrl** on Windows and Linux
+
+The codebase uses `Mod` key in TipTap and `CmdOrCtrl` in Tauri menus, which automatically maps to the correct modifier key for your platform.

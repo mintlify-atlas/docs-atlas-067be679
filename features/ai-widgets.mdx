@@ -1,0 +1,404 @@
+---
+title: 'AI Widgets'
+description: 'Generate interactive UI components with Sophia, the AI widget builder'
+---
+
+Philo includes Sophia, an AI system that generates custom interactive UI widgets from natural language prompts. Widgets are rendered using a declarative JSON specification and can display data, metrics, lists, charts, and more.
+
+## Overview
+
+Sophia uses Claude (Anthropic's AI model) to transform prompts into structured JSON-UI specifications:
+
+```
+User prompt → Sophia (Claude) → JSON spec → Rendered widget
+```
+
+### Key Features
+
+<CardGroup cols={2}>
+  <Card title="Natural Language" icon="message">
+    Describe what you want in plain English
+  </Card>
+  <Card title="Rich Components" icon="grid">
+    Cards, metrics, charts, tables, lists, and interactive elements
+  </Card>
+  <Card title="Live Editing" icon="refresh">
+    Rebuild widgets instantly with new prompts
+  </Card>
+  <Card title="Save to Library" icon="book">
+    Reuse widgets across notes
+  </Card>
+</CardGroup>
+
+## How It Works
+
+<Steps>
+  <Step title="Create a widget prompt">
+    Type a natural language description like "Show my weekly workout stats"
+  </Step>
+  <Step title="Sophia generates JSON">
+    Claude processes the prompt and returns a JSON-UI specification
+  </Step>
+  <Step title="Render the widget">
+    The JSON spec is rendered using the widget registry
+  </Step>
+  <Step title="Optionally save">
+    Save successful widgets to your library for reuse
+  </Step>
+</Steps>
+
+## Widget Generation
+
+The `generateWidget()` function handles the AI generation:
+
+```typescript
+export async function generateWidget(prompt: string): Promise<Spec> {
+  const apiKey = await getApiKey();
+  if (!apiKey) {
+    throw new Error("API_KEY_MISSING");
+  }
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-opus-4-6",
+      max_tokens: 8192,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Sophia failed (${response.status}): ${error}`);
+  }
+
+  const data = await response.json();
+  const text: string = data.content[0].text;
+
+  // Parse the JSON spec
+  const cleaned = text.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+  try {
+    return JSON.parse(cleaned) as Spec;
+  } catch {
+    throw new Error(`Sophia returned invalid JSON: ${cleaned.slice(0, 200)}`);
+  }
+}
+```
+
+<Note>
+Requires an Anthropic API key configured in Philo settings.
+</Note>
+
+## System Prompt
+
+Sophia uses a carefully crafted system prompt that defines the output format and available components:
+
+```typescript
+const SYSTEM_PROMPT = `You are Sophia, an AI that generates UI widgets as JSON specs.
+
+OUTPUT FORMAT:
+Return ONLY a JSON object with this exact shape (no markdown, no explanation, no code fences):
+{
+  "root": "<root-element-id>",
+  "elements": {
+    "<element-id>": {
+      "type": "<ComponentName>",
+      "props": { ... },
+      "children": ["<child-id-1>", "<child-id-2>"]
+    }
+  }
+}
+
+- Every element needs a unique string ID (e.g. "main-card", "title-text", "stats-grid").
+- "children" is an array of element ID strings. Use [] for leaf nodes.
+- "root" is the ID of the top-level element.
+
+AVAILABLE COMPONENTS:
+...
+`;
+```
+
+### Component Catalog
+
+Sophia has access to these component types:
+
+#### Layout Components
+
+```typescript
+// Card - Top-level container
+{ type: "Card", props: { title?: string, padding?: "none"|"sm"|"md"|"lg" } }
+
+// Stack - Flex layout
+{ type: "Stack", props: { 
+  direction?: "vertical"|"horizontal", 
+  gap?: "none"|"xs"|"sm"|"md"|"lg",
+  align?: "start"|"center"|"end"|"stretch",
+  justify?: "start"|"center"|"end"|"between"|"around",
+  wrap?: boolean 
+}}
+
+// Grid - Grid layout
+{ type: "Grid", props: { columns?: number, gap?: "none"|"xs"|"sm"|"md"|"lg" } }
+
+// Divider - Horizontal line
+{ type: "Divider", props: {} }
+
+// Spacer - Vertical spacing
+{ type: "Spacer", props: { size?: "xs"|"sm"|"md"|"lg"|"xl" } }
+```
+
+#### Content Components
+
+```typescript
+// Text
+{ type: "Text", props: { 
+  content: string, 
+  size?: "xs"|"sm"|"md"|"lg"|"xl",
+  weight?: "normal"|"medium"|"semibold"|"bold",
+  color?: "default"|"muted"|"accent"|"success"|"warning"|"error",
+  align?: "left"|"center"|"right"
+}}
+
+// Heading
+{ type: "Heading", props: { content: string, level?: "h1"|"h2"|"h3" } }
+
+// Metric - Key number display
+{ type: "Metric", props: { 
+  label: string, 
+  value: string, 
+  unit?: string, 
+  trend?: "up"|"down"|"flat" 
+}}
+
+// Badge
+{ type: "Badge", props: { 
+  text: string, 
+  variant?: "default"|"success"|"warning"|"error"|"info" 
+}}
+
+// Image
+{ type: "Image", props: { src: string, alt?: string, rounded?: boolean } }
+```
+
+#### Data Components
+
+```typescript
+// List
+{ type: "List", props: { 
+  items: [{ label: string, description?: string, trailing?: string }],
+  variant?: "plain"|"bordered"|"striped" 
+}}
+
+// Table
+{ type: "Table", props: { headers: string[], rows: string[][] } }
+
+// ProgressBar
+{ type: "ProgressBar", props: { 
+  value: number, 
+  max?: number, 
+  color?: "default"|"success"|"warning"|"error"|"accent",
+  showLabel?: boolean 
+}}
+```
+
+#### Interactive Components
+
+```typescript
+// Button
+{ type: "Button", props: { 
+  label: string, 
+  variant?: "primary"|"secondary"|"ghost", 
+  size?: "sm"|"md"|"lg" 
+}}
+
+// TextInput
+{ type: "TextInput", props: { placeholder?: string, label?: string } }
+
+// Checkbox
+{ type: "Checkbox", props: { label: string } }
+```
+
+## JSON-UI Specification
+
+Widgets use a declarative JSON format where each element has a unique ID:
+
+```json
+{
+  "root": "main-card",
+  "elements": {
+    "main-card": {
+      "type": "Card",
+      "props": { "title": "Weekly Stats", "padding": "md" },
+      "children": ["metrics-grid", "progress-section"]
+    },
+    "metrics-grid": {
+      "type": "Grid",
+      "props": { "columns": 3, "gap": "md" },
+      "children": ["metric-1", "metric-2", "metric-3"]
+    },
+    "metric-1": {
+      "type": "Metric",
+      "props": { "label": "Workouts", "value": "5", "unit": "sessions", "trend": "up" },
+      "children": []
+    },
+    "metric-2": {
+      "type": "Metric",
+      "props": { "label": "Duration", "value": "4.5", "unit": "hours" },
+      "children": []
+    },
+    "metric-3": {
+      "type": "Metric",
+      "props": { "label": "Calories", "value": "2100", "unit": "kcal", "trend": "up" },
+      "children": []
+    },
+    "progress-section": {
+      "type": "Stack",
+      "props": { "direction": "vertical", "gap": "sm" },
+      "children": ["progress-label", "progress-bar"]
+    },
+    "progress-label": {
+      "type": "Text",
+      "props": { "content": "Weekly goal progress", "size": "sm", "color": "muted" },
+      "children": []
+    },
+    "progress-bar": {
+      "type": "ProgressBar",
+      "props": { "value": 71, "max": 100, "color": "success", "showLabel": true },
+      "children": []
+    }
+  }
+}
+```
+
+## Widget View Component
+
+Widgets are rendered in the editor using the `WidgetView` component:
+
+```typescript
+export function WidgetView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
+  const { spec: specStr, saved, prompt, loading, error } = node.attrs;
+
+  const spec = useMemo<Spec | null>(() => {
+    if (!specStr) return null;
+    try {
+      return JSON.parse(specStr);
+    } catch {
+      return null;
+    }
+  }, [specStr]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="widget-loading">
+        <div className="widget-spinner" />
+        <span>Sophia is building...</span>
+      </div>
+    );
+  }
+
+  // Render widget or error
+  return (
+    <div className={`widget-node ${selected ? "widget-selected" : ""}`}>
+      <div className="widget-toolbar">
+        <span className="widget-prompt">{prompt}</span>
+        <button onClick={handleRebuild}>Rebuild</button>
+        <button onClick={handleSaveToLibrary}>Save to Library</button>
+        <button onClick={deleteNode}>✕</button>
+      </div>
+      {error ? (
+        <div className="widget-error">{error}</div>
+      ) : spec ? (
+        <Renderer spec={spec} registry={registry} />
+      ) : (
+        <div>No content yet.</div>
+      )}
+    </div>
+  );
+}
+```
+
+## Example Prompts
+
+<AccordionGroup>
+  <Accordion title="Fitness Tracker">
+    **Prompt:** "Show my workout stats with exercises completed, total duration, and calories burned"
+    
+    Generates a card with metrics for key fitness data.
+  </Accordion>
+  
+  <Accordion title="Reading Progress">
+    **Prompt:** "Display my reading progress with books completed this month, current book progress bar, and reading goal"
+    
+    Creates a reading dashboard with progress tracking.
+  </Accordion>
+  
+  <Accordion title="Habit Tracker">
+    **Prompt:** "Create a weekly habit tracker showing meditation, exercise, and journaling with checkboxes"
+    
+    Builds an interactive habit tracking grid.
+  </Accordion>
+  
+  <Accordion title="Project Status">
+    **Prompt:** "Show project status with a table of tasks, their priority, and completion status"
+    
+    Generates a structured project overview table.
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Be specific" icon="bullseye">
+    Include details about what data to show and how to display it
+  </Card>
+  <Card title="Use concrete examples" icon="list-check">
+    Mention actual values or data points you want displayed
+  </Card>
+  <Card title="Specify layout" icon="table-cells">
+    Describe how elements should be arranged (grid, list, etc.)
+  </Card>
+  <Card title="Iterate with rebuild" icon="arrows-rotate">
+    Refine prompts and rebuild if the first result isn't perfect
+  </Card>
+</CardGroup>
+
+<Warning>
+Widgets require an active internet connection and valid Anthropic API key. Generation may take a few seconds.
+</Warning>
+
+## Error Handling
+
+Widgets handle errors gracefully:
+
+- **Missing API key:** Prompts user to add key in settings
+- **Network errors:** Shows error message with retry option
+- **Invalid JSON:** Displays parsing error
+- **Render errors:** Caught by error boundary with clear message
+
+## Saving to Library
+
+Successful widgets can be saved for reuse:
+
+```typescript
+const handleSaveToLibrary = async () => {
+  if (!saved && specStr) {
+    await addToLibrary({
+      title: deriveTitle(prompt),
+      description: prompt,
+      html: specStr,
+      prompt,
+    });
+    updateAttributes({ saved: true });
+  }
+};
+```
+
+See [Widget Library](/features/widget-library) for more details.

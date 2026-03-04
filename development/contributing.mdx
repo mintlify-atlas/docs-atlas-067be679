@@ -1,0 +1,302 @@
+---
+title: Contributing Guidelines
+description: Learn how to contribute to Philo with our commit discipline and code standards
+---
+
+Thank you for your interest in contributing to Philo! This guide outlines our development workflow, commit practices, and code standards.
+
+## Commit Discipline
+
+We follow a strict commit discipline to maintain a clean, reviewable git history.
+
+### Commit After Every Discrete Action
+
+Commit immediately after completing each meaningful change:
+
+- Adding a feature
+- Fixing a bug
+- Refactoring code
+- Updating documentation
+- Adding a test
+
+<Warning>
+  **Do not** batch unrelated changes into a single commit. If a task involves multiple steps, commit after each step — not all at the end.
+</Warning>
+
+### Commit Message Format
+
+Use **concise, imperative** commit messages that describe what the commit does:
+
+<CodeGroup>
+```bash Good Examples
+add bucket column reordering
+fix off-by-one in timeline view
+update task rollover logic
+remove unused import in editor
+```
+
+```bash Bad Examples
+Added some features and fixed bugs
+WIP
+Fixes
+Updated files
+```
+</CodeGroup>
+
+### Keep Commits Small and Reviewable
+
+Each commit should:
+- Be focused on a single concern
+- Be understandable without additional context
+- Be easy to review and revert if needed
+
+## Pre-Commit Checks
+
+Before committing, always run:
+
+### TypeScript Changes
+
+```bash
+bun run typecheck
+bun run fmt
+```
+
+Or use the combined command:
+```bash
+bun run check
+```
+
+### Rust Changes
+
+<Steps>
+  <Step title="Run cargo check periodically">
+    While making changes, run `cargo check` frequently to catch errors early:
+    ```bash
+    cd src-tauri
+    cargo check
+    ```
+  </Step>
+
+  <Step title="Fix clippy warnings">
+    Before committing, ensure there are no clippy warnings:
+    ```bash
+    cd src-tauri
+    cargo clippy
+    ```
+  </Step>
+
+  <Step title="Verify compilation">
+    Build the Rust code to verify it compiles:
+    ```bash
+    cd src-tauri
+    cargo build
+    ```
+  </Step>
+
+  <Step title="Format code">
+    Format your Rust code:
+    ```bash
+    cd src-tauri
+    cargo fmt
+    ```
+  </Step>
+</Steps>
+
+## Code Style Guidelines
+
+### TypeScript
+
+- **Avoid unnecessary types/interfaces** — Don't create types or interfaces if they're only used once. Inline them instead, especially for function props.
+- **Run type-check periodically** — After making TypeScript changes, run `bun run typecheck` to catch errors early.
+
+<CodeGroup>
+```tsx Good - Inline Props
+function Button({ onClick, label }: { onClick: () => void; label: string }) {
+  return <button onClick={onClick}>{label}</button>;
+}
+```
+
+```tsx Bad - Unnecessary Interface
+interface ButtonProps {
+  onClick: () => void;
+  label: string;
+}
+
+function Button({ onClick, label }: ButtonProps) {
+  return <button onClick={onClick}>{label}</button>;
+}
+```
+</CodeGroup>
+
+### Rust
+
+- **Avoid unnecessary structs/enums/traits** — Don't create these if they're not shared. Prefer inlining types when used in only one place.
+- **Run `cargo check` frequently** — Don't wait until the end to check for errors.
+
+### Comments
+
+<Warning>
+  By default, **avoid writing comments**. If you must write one, explain **"why"** — not **"what"**.
+</Warning>
+
+<CodeGroup>
+```ts Good - Explains Why
+// Delay required for animation frame to complete before DOM update
+await new Promise(resolve => setTimeout(resolve, 16));
+```
+
+```ts Bad - Explains What
+// Set timeout to 16 milliseconds
+await new Promise(resolve => setTimeout(resolve, 16));
+```
+</CodeGroup>
+
+## Releases
+
+Philo uses an automated release workflow powered by GitHub Actions.
+
+### Creating a Release
+
+<Steps>
+  <Step title="Bump version numbers">
+    Update the version in both:
+    - `src-tauri/Cargo.toml`
+    - `src-tauri/tauri.conf.json`
+
+    ```toml Cargo.toml
+    [package]
+    name = "philo"
+    version = "0.0.32"  # Increment version
+    ```
+  </Step>
+
+  <Step title="Commit and push">
+    Commit the version bump:
+    ```bash
+    git add src-tauri/Cargo.toml src-tauri/tauri.conf.json
+    git commit -m "bump version to 0.0.32"
+    git push
+    ```
+  </Step>
+
+  <Step title="Create release with gh CLI">
+    Use the GitHub CLI to create a release:
+    ```bash
+    gh release create v0.0.32 --title "Philo v0.0.32" --notes "- Add @ autocomplete dropdown for selecting tasks by ID or title
+- Fix task rollover not respecting recurring task schedules
+- Improve widget library search performance"
+    ```
+
+    <Note>
+      The CI workflow (`.github/workflows/release.yml`) will automatically build and upload platform binaries (`.dmg`, `.exe`, etc.) to the release.
+    </Note>
+  </Step>
+</Steps>
+
+### Release Notes Guidelines
+
+- **Do not use `--draft`** — Releases must be published immediately
+- Write concise, descriptive bullet points explaining user-facing changes
+- Focus on **what changed** from the user's perspective, not implementation details
+- Do not just list version numbers or raw commit messages
+
+<CodeGroup>
+```md Good Release Notes
+- Add @ autocomplete dropdown for selecting tasks by ID or title
+- Fix task rollover not respecting recurring task schedules
+- Improve widget library search performance
+```
+
+```md Bad Release Notes
+- v0.0.32
+- Fixed bugs
+- Updated dependencies
+- Refactored TaskManager class
+```
+</CodeGroup>
+
+## Continuous Integration
+
+Philo uses GitHub Actions for automated testing and builds.
+
+### Frontend CI
+
+Runs on every push/PR affecting frontend code:
+
+- Installs dependencies with Bun
+- Type-checks TypeScript (`bun run build`)
+- Checks code formatting (`dprint check`)
+
+### Rust CI
+
+Runs on every push/PR affecting Rust code:
+
+- Installs system dependencies (Linux)
+- Runs `cargo check`
+- Runs `cargo clippy` with warnings as errors
+- Runs `cargo test`
+
+### Rust Formatting CI
+
+Runs separately to check Rust formatting:
+
+- Runs `cargo fmt --check`
+
+### Release CI
+
+Triggered when a tag matching `v*` is pushed:
+
+- Builds for **macOS** (Apple Silicon and Intel)
+- Builds for **Linux** (Ubuntu 22.04)
+- Builds for **Windows**
+- Uploads binaries to the GitHub release
+
+## Development Workflow
+
+<Steps>
+  <Step title="Create a feature branch">
+    ```bash
+    git checkout -b feature/my-new-feature
+    ```
+  </Step>
+
+  <Step title="Make changes and commit frequently">
+    Follow the commit discipline outlined above. Commit after each discrete action.
+  </Step>
+
+  <Step title="Run checks before pushing">
+    ```bash
+    # TypeScript
+    bun run check
+
+    # Rust
+    cd src-tauri && cargo clippy && cargo fmt
+    ```
+  </Step>
+
+  <Step title="Push and create a pull request">
+    ```bash
+    git push origin feature/my-new-feature
+    gh pr create --title "Add feature X" --body "Description of changes"
+    ```
+  </Step>
+
+  <Step title="Ensure CI passes">
+    Wait for all CI checks to pass before merging.
+  </Step>
+</Steps>
+
+## Getting Help
+
+- Check existing [GitHub Issues](https://github.com/your-org/philo/issues)
+- Review [closed pull requests](https://github.com/your-org/philo/pulls?q=is%3Apr+is%3Aclosed) for examples
+- Ask questions in GitHub Discussions
+
+<CardGroup cols={2}>
+  <Card title="Development Setup" icon="code" href="/development/setup">
+    Set up your local development environment
+  </Card>
+  <Card title="Building for Production" icon="hammer" href="/development/building">
+    Learn how to build desktop apps
+  </Card>
+</CardGroup>

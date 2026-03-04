@@ -1,0 +1,373 @@
+---
+title: Tech Stack
+description: Complete list of technologies, frameworks, and libraries used in Philo
+---
+
+## Core Technologies
+
+### Tauri 2.0
+
+**Purpose**: Desktop application framework combining Rust backend with web frontend
+
+**Version**: `^2`
+
+Tauri enables building lightweight, secure desktop apps using web technologies. Key features:
+
+- Native OS integration (file system, dialogs, menus)
+- Secure IPC bridge between Rust and JavaScript
+- Small bundle size compared to Electron
+- Built-in updater mechanism
+- Cross-platform support (macOS, Windows, Linux)
+
+**Official Docs**: [tauri.app](https://tauri.app/)
+
+### React 19
+
+**Purpose**: UI library for building the frontend interface
+
+**Version**: `^19.1.0`
+
+React provides the component-based architecture for all UI elements:
+
+- Functional components with hooks
+- JSX for declarative UI
+- Virtual DOM for efficient updates
+- StrictMode for development safety
+
+**Official Docs**: [react.dev](https://react.dev/)
+
+### TypeScript 5.8
+
+**Purpose**: Type-safe JavaScript for frontend code
+
+**Version**: `~5.8.3`
+
+TypeScript configuration:
+
+- Strict mode enabled
+- ES2020 target with DOM APIs
+- JSX compiled to React runtime
+- Bundler module resolution
+- No unused locals/parameters allowed
+
+### Rust Edition 2021
+
+**Purpose**: Systems programming language for Tauri backend
+
+**Version**: Edition 2021
+
+Rust provides:
+
+- Memory safety without garbage collection
+- Zero-cost abstractions
+- Fearless concurrency
+- Native performance
+- Cargo package management
+
+## Build Tools
+
+### Vite 7
+
+**Purpose**: Fast frontend build tool and development server
+
+**Version**: `^7.0.4`
+
+**Key Features**:
+
+- Lightning-fast HMR (Hot Module Replacement)
+- Optimized production builds with Rollup
+- Native ES modules in development
+- Plugin ecosystem (@vitejs/plugin-react)
+
+Vite configuration:
+
+- Fixed port 1421 for Tauri integration
+- HMR on port 1422
+- Ignores src-tauri directory in watch mode
+- React plugin for JSX transformation
+
+### Bun
+
+**Purpose**: JavaScript runtime and package manager
+
+**Used for**: Package installation, script running
+
+Bun provides faster install times and script execution compared to npm/yarn.
+
+### Tauri CLI
+
+**Purpose**: Build and development tooling for Tauri apps
+
+**Version**: `^2`
+
+Orchestrates:
+
+- Rust compilation (cargo)
+- Frontend bundling (Vite)
+- App packaging and code signing
+- Development server coordination
+
+## Frontend Dependencies
+
+### Editor: TipTap 3.19
+
+TipTap is a headless rich text editor built on ProseMirror.
+
+**Core Packages**:
+
+- `@tiptap/react` (^3.19.0) - React integration
+- `@tiptap/core` (^3.19.0) - Core editor functionality
+- `@tiptap/pm` (^3.19.0) - ProseMirror dependencies
+- `@tiptap/starter-kit` (^3.19.0) - Basic editor features
+- `@tiptap/markdown` (^3.19.0) - Markdown serialization/parsing
+
+**Extensions**:
+
+- `@tiptap/extension-highlight` - Text highlighting
+- `@tiptap/extension-image` - Image embedding
+- `@tiptap/extension-link` - Hyperlinks
+- `@tiptap/extension-list-keymap` - List keyboard shortcuts
+- `@tiptap/extension-placeholder` - Placeholder text
+- `@tiptap/extension-table` - Table support
+- `@tiptap/extension-task-item` - Task list items
+- `@tiptap/extension-task-list` - Task lists
+- `@tiptap/extension-underline` - Underline formatting
+- `@tiptap/extension-file-handler` - File drag-and-drop
+
+**Official Docs**: [tiptap.dev](https://tiptap.dev/)
+
+### Widget Rendering: JSON-Render
+
+JSON-Render enables declarative UI components from JSON specs.
+
+**Packages**:
+
+- `@json-render/core` (^0.6.1) - Core spec types and validation
+- `@json-render/react` (^0.6.1) - React renderer for JSON specs
+
+**Purpose**: Renders AI-generated widget UIs without code execution
+
+### Drawing: Excalidraw
+
+**Package**: `@excalidraw/excalidraw` (^0.18.0)
+
+**Purpose**: Embed interactive whiteboard diagrams in notes
+
+**Features**:
+
+- Hand-drawn style graphics
+- Collaborative editing (if enabled)
+- Export to PNG/SVG
+- Integrated directly in TipTap editor
+
+**Official Docs**: [excalidraw.com](https://excalidraw.com/)
+
+### Styling: Tailwind CSS 4
+
+**Packages**:
+
+- `tailwindcss` (^4.1.18) - Core CSS framework
+- `@tailwindcss/postcss` (^4.1.18) - PostCSS integration
+- `@tailwindcss/typography` (^0.5.19) - Prose styling for markdown
+- `autoprefixer` (^10.4.24) - CSS vendor prefixing
+- `postcss` (^8.5.6) - CSS transformation tool
+
+**Purpose**: Utility-first CSS framework for rapid UI development
+
+### Fonts
+
+**Packages**:
+
+- `@ibm/plex-sans` (^1.1.0) - IBM Plex Sans font family
+- `@ibm/plex-mono` (^1.1.0) - IBM Plex Mono for code
+- `@fontsource/instrument-serif` (^5.2.8) - Instrument Serif font
+
+**Purpose**: Typography for UI and content
+
+### Icons
+
+**Package**: `lucide-react` (^0.564.0)
+
+**Purpose**: Beautiful, consistent icon library
+
+**Usage**: Over 1000+ open-source icons as React components
+
+**Official Docs**: [lucide.dev](https://lucide.dev/)
+
+### Utilities
+
+**Packages**:
+
+- `usehooks-ts` (^3.1.1) - Collection of React hooks (useDebounce, etc.)
+- `nanoid` (^5.1.6) - Unique ID generation for widgets
+- `lz-string` (^1.5.0) - Compression for Excalidraw data
+- `zod` (^4.3.6) - TypeScript-first schema validation
+
+## Tauri Plugins
+
+Tauri plugins extend native functionality:
+
+### Core Plugins
+
+**Frontend**:
+
+- `@tauri-apps/api` (^2) - Core Tauri JavaScript API
+- `@tauri-apps/plugin-dialog` (^2.6.0) - File/folder dialogs
+- `@tauri-apps/plugin-fs` (^2.4.5) - File system operations
+- `@tauri-apps/plugin-opener` (^2) - Open URLs/files with default app
+- `@tauri-apps/plugin-process` (^2.3.1) - Process management
+- `@tauri-apps/plugin-updater` (^2.10.0) - Auto-update functionality
+
+**Backend** (Rust `Cargo.toml`):
+
+- `tauri` (v2, features: ["protocol-asset"]) - Core Tauri runtime
+- `tauri-plugin-opener` (v2) - URL/file opening
+- `tauri-plugin-fs` (v2) - File system access
+- `tauri-plugin-process` (v2) - Process control
+- `tauri-plugin-dialog` (v2.6.0) - Native dialogs
+- `tauri-plugin-updater` (v2, desktop only) - App updates
+
+### Platform-Specific
+
+**macOS Only**:
+
+- `objc` (0.2) - Objective-C runtime for macOS API access
+  - Used for: Window opacity, process name customization
+
+## Backend Dependencies (Rust)
+
+### Data Persistence
+
+**Package**: `rusqlite` (0.37.0, features: ["bundled"])
+
+**Purpose**: SQLite database for full-text search indexing
+
+**Features**:
+
+- FTS5 (Full-Text Search) for fast content search
+- BM25 ranking algorithm
+- Incremental indexing based on file modification time
+- WAL mode for better concurrency
+
+### Serialization
+
+**Packages**:
+
+- `serde` (v1, features: ["derive"]) - Serialization framework
+- `serde_json` (v1) - JSON support
+
+**Purpose**: Converting between Rust structs and JSON for IPC communication
+
+### Build Dependencies
+
+**Package**: `tauri-build` (v2) - Build-time code generation for Tauri
+
+## DevOps & Tooling
+
+### Code Formatting
+
+**Package**: `dprint` (configured in project)
+
+**Purpose**: Fast code formatter for TypeScript, JSON, Markdown
+
+**Scripts**:
+
+- `bun run fmt` - Format code
+- `bun run fmt:check` - Check formatting without modifying
+
+### Type Checking
+
+**Script**: `bun run typecheck`
+
+**Purpose**: Run TypeScript compiler without emitting files
+
+## Configuration Files
+
+### Tauri Configuration
+
+**File**: `src-tauri/tauri.conf.json`
+
+**Key Settings**:
+
+- Product name: "Philo"
+- App identifier: `com.johnjeong.philo`
+- Window dimensions: 400x560 (min 400x300)
+- Title bar style: Overlay
+- Asset protocol scope: Journal assets folder
+- Updater endpoint: GitHub releases
+
+### TypeScript Configuration
+
+**File**: `tsconfig.json`
+
+**Settings**:
+
+- Target: ES2020
+- Module: ESNext
+- JSX: react-jsx (automatic runtime)
+- Strict mode: enabled
+- Bundler resolution for Vite
+
+### Vite Configuration
+
+**File**: `vite.config.ts`
+
+**Settings**:
+
+- React plugin enabled
+- Dev server: port 1421 (strict)
+- HMR: port 1422
+- Watches: ignores src-tauri/
+- Clear screen: disabled (show Rust errors)
+
+### Cargo Configuration
+
+**File**: `src-tauri/Cargo.toml`
+
+**Settings**:
+
+- Package name: `philo`
+- Library name: `philo_lib`
+- Crate types: staticlib, cdylib, rlib
+- Edition: 2021
+
+## Version Information
+
+**Frontend Version**: 0.0.10 (package.json)  
+**Backend Version**: 0.0.31 (Cargo.toml, tauri.conf.json)
+
+Note: Version numbers should be kept in sync across package.json, Cargo.toml, and tauri.conf.json.
+
+## External Services
+
+Philo integrates with external services:
+
+### Widget Generation
+
+Widget generation uses an AI API (implementation in `src/services/generate.ts`). The API:
+
+- Accepts user prompts
+- Returns JSON-Render specs
+- Requires API key configuration
+
+### Auto-Updates
+
+Auto-updates are configured to check:
+
+- **Endpoint**: `https://github.com/ComputelessComputer/philo/releases/latest/download/latest.json`
+- **Public Key**: Configured in tauri.conf.json for signature verification
+- **Platform**: Desktop only (not mobile)
+
+## Development Environment
+
+Recommended setup:
+
+- **Node.js**: v18+ (for compatibility)
+- **Bun**: Latest version
+- **Rust**: Latest stable (installed via rustup)
+- **OS**: macOS, Windows, or Linux
+
+## Next Steps
+
+- [Architecture Overview](/development/architecture) - Understand how components work together
+- [File Structure](/development/file-structure) - Explore the codebase organization

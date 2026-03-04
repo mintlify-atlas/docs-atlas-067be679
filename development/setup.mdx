@@ -1,0 +1,184 @@
+---
+title: Development Setup
+description: Set up your local development environment for Philo
+---
+
+This guide walks you through setting up a local development environment for Philo.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+### Required Tools
+
+- **Node.js** (v18 or later)
+- **Bun** (package manager) - [Install Bun](https://bun.sh/docs/installation)
+- **Rust** (stable toolchain) - Required for Tauri backend
+  - [Install Rust](https://www.rust-lang.org/tools/install)
+  - Ensure `cargo` is in your PATH
+
+### Platform-Specific Dependencies
+
+<Tabs>
+  <Tab title="macOS">
+    No additional dependencies required. Xcode Command Line Tools are recommended:
+    ```bash
+    xcode-select --install
+    ```
+  </Tab>
+  <Tab title="Linux">
+    Install required system libraries:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y libwebkit2gtk-4.1-dev \
+      libappindicator3-dev \
+      librsvg2-dev \
+      patchelf
+    ```
+  </Tab>
+  <Tab title="Windows">
+    Install [Microsoft Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+  </Tab>
+</Tabs>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Philo repository and initialize submodules:
+    ```bash
+    git clone https://github.com/your-org/philo.git
+    cd philo
+    git submodule update --init --recursive
+    ```
+
+    <Note>
+      Philo uses a git submodule at `vendor/hyprnote` for editor styling and file-saving mechanisms.
+    </Note>
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all JavaScript dependencies using Bun:
+    ```bash
+    bun install --frozen-lockfile
+    ```
+  </Step>
+
+  <Step title="Verify Rust setup">
+    Verify that Rust and Cargo are properly installed:
+    ```bash
+    cargo --version
+    rustc --version
+    ```
+  </Step>
+
+  <Step title="Run the development server">
+    Start the development server:
+    ```bash
+    bun run dev
+    ```
+
+    This will:
+    - Start Vite dev server for the React frontend
+    - Launch the Tauri app in development mode
+    - Enable hot module replacement (HMR)
+  </Step>
+</Steps>
+
+## Development Commands
+
+Here are the most commonly used development commands:
+
+### Frontend Development
+
+```bash
+# Start development server
+bun run dev
+
+# Type-check TypeScript files
+bun run typecheck
+
+# Format code with dprint
+bun run fmt
+
+# Check formatting without modifying files
+bun run fmt:check
+
+# Build frontend for production
+bun run build
+```
+
+### Rust Development
+
+```bash
+# Check Rust code for errors
+cd src-tauri && cargo check
+
+# Run clippy linter
+cd src-tauri && cargo clippy
+
+# Format Rust code
+cd src-tauri && cargo fmt
+
+# Check Rust formatting
+cd src-tauri && cargo fmt --check
+
+# Run tests
+cd src-tauri && cargo test
+```
+
+### Combined Checks
+
+Run type checking and formatting together:
+```bash
+bun run check
+```
+
+This runs both `bun run typecheck` and `dprint fmt`.
+
+## Project Structure
+
+Key directories and files:
+
+- `src/` - React frontend source code
+- `src-tauri/` - Rust backend (Tauri app)
+- `vendor/hyprnote/` - Git submodule for editor components
+- `package.json` - JavaScript dependencies and scripts
+- `src-tauri/Cargo.toml` - Rust dependencies
+- `dprint.json` - Code formatting configuration
+
+## Troubleshooting
+
+### Submodule Issues
+
+If you encounter issues with the `vendor/hyprnote` submodule:
+```bash
+git submodule update --init --recursive --force
+```
+
+### Rust Compilation Errors
+
+Ensure you're using the stable Rust toolchain:
+```bash
+rustup default stable
+rustup update
+```
+
+### Bun Lock File Conflicts
+
+If you see dependency conflicts:
+```bash
+rm bun.lock
+bun install
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Building for Production" icon="hammer" href="/development/building">
+    Learn how to build desktop apps for macOS, Windows, and Linux
+  </Card>
+  <Card title="Contributing Guidelines" icon="code-pull-request" href="/development/contributing">
+    Understand our commit discipline and contribution workflow
+  </Card>
+</CardGroup>

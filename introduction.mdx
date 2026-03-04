@@ -1,0 +1,118 @@
+---
+title: Introduction
+description: A daily journaling app that builds custom widgets for you
+---
+
+Philo is a daily journaling app that generates AI-powered mini-apps right inside your notes. Write in a timeline, manage tasks that carry forward automatically, and press **⌘↵** to create interactive widgets — a calorie tracker, a world clock, a habit chart — embedded directly in your journal.
+
+## How it works
+
+Philo combines traditional journaling with AI-generated interactive components:
+
+<Steps>
+  <Step title="Journal">
+    Write daily notes in a scrollable timeline (tomorrow → today → past)
+  </Step>
+  
+  <Step title="Track tasks">
+    Checkbox tasks roll over automatically; unchecked items carry forward to today on each app launch
+  </Step>
+  
+  <Step title="Recurring tasks">
+    Add `#daily`, `#weekly`, `#monthly`, `#2days`, `#3weeks`, etc. to a task and it reappears on schedule after you check it off
+  </Step>
+  
+  <Step title="Generate widgets">
+    Describe what you need and press **⌘↵** to create an interactive widget inline
+  </Step>
+  
+  <Step title="Save to library">
+    Widgets are disposable by default. Save the ones you like and reuse them anywhere with **⌘J**
+  </Step>
+</Steps>
+
+## Key features
+
+### Daily timeline
+
+View tomorrow, today, and past notes in a single scrollable view with a floating "Go to Today" button for quick navigation.
+
+### Task rollover
+
+Unchecked tasks from past days automatically move to today when you launch the app. No manual copying needed.
+
+### Recurring tasks
+
+Tag tasks with recurrence intervals to have them repeat:
+
+```markdown
+- [ ] Meditate #daily
+- [ ] Review goals #weekly
+- [ ] Monthly budget check #monthly
+- [ ] Water plants #3days
+```
+
+### AI-powered widgets
+
+Generate interactive React mini-apps inline using Claude Opus 4. Select text describing what you want, press **⌘↵**, and Philo creates a custom widget.
+
+<Note>
+  Widgets use the `@json-render/react` component library with pre-built UI elements like cards, metrics, charts, and interactive forms.
+</Note>
+
+### Widget library
+
+Save generated widgets to your library and reuse them across notes. Press **⌘J** to browse saved widgets and insert them anywhere.
+
+### Local-first storage
+
+All data is stored as markdown files on your disk at `$APPDATA/philo/journal/`. Works with existing Obsidian vaults.
+
+### Image support
+
+Paste or drag-and-drop images directly into your notes. Images are automatically saved to your vault's assets folder.
+
+### Dark mode
+
+Follows your system theme automatically.
+
+## Use cases
+
+<Accordion title="Daily journaling">
+  Capture thoughts, plan tomorrow, and review the past in a unified timeline view.
+</Accordion>
+
+<Accordion title="Habit tracking">
+  Use recurring tasks like `- [ ] Exercise #daily` that automatically reappear each day after completion.
+</Accordion>
+
+<Accordion title="Personal dashboards">
+  Embed a calorie tracker, mood logger, or workout log directly in your daily notes.
+</Accordion>
+
+<Accordion title="Quick tools">
+  Generate utility widgets on demand — unit converters, tip calculators, countdown timers.
+</Accordion>
+
+<Accordion title="Project planning">
+  Create kanban boards, progress trackers, or milestone charts inside your journal.
+</Accordion>
+
+## Technology stack
+
+Philo is built with modern web technologies wrapped in a native desktop shell:
+
+- **Tauri v2** — Lightweight native desktop framework
+- **React 19** — UI library
+- **TypeScript** — Type-safe development
+- **TipTap** — Rich text editor framework
+- **Tailwind CSS v4** — Utility-first styling
+- **Anthropic Claude Opus 4** — AI widget generation
+
+## Inspiration
+
+Philo is inspired by [Logseq](https://logseq.com) and [@omer_vexler's concept](https://x.com/omer_vexler/status/1939756227749347615) of AI-generated journaling components.
+
+<Note>
+  Philo is a proof-of-concept playground for a daily journaling feature being developed for [Char](https://github.com/fastrepl/hyprnote). It borrows Char's editor styling and file-saving mechanism while adding task rollover, recurring tasks, and AI widget generation.
+</Note>

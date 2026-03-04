@@ -1,0 +1,268 @@
+---
+title: "Habit Tracking"
+description: "Build consistent daily routines with recurring tasks and visual tracking"
+icon: "check-double"
+---
+
+Philo makes habit tracking effortless by combining recurring tasks with the flexibility of AI-generated tracking widgets. Set up habits once, and they automatically reappear on schedule.
+
+## Setting up recurring habits
+
+<Steps>
+  <Step title="Create your habit task">
+    Write a checkbox task in your journal with a clear, actionable description:
+    
+    ```markdown
+    - [ ] Meditate for 10 minutes
+    ```
+  </Step>
+  
+  <Step title="Add a recurrence tag">
+    Add a hashtag to specify how often the habit should repeat:
+    
+    ```markdown
+    - [ ] Meditate for 10 minutes #daily
+    - [ ] Go to gym #3weekly
+    - [ ] Review goals #weekly
+    - [ ] Deep clean apartment #monthly
+    ```
+  </Step>
+  
+  <Step title="Complete the task">
+    When you complete the habit for today, check it off. The task will automatically reappear on your next scheduled day.
+  </Step>
+  
+  <Step title="Track your progress">
+    Generate a habit tracking widget to visualize your streaks and patterns over time.
+  </Step>
+</Steps>
+
+## Recurrence tag options
+
+Philo supports flexible recurring intervals:
+
+| Tag | Repeats |
+|-----|--------|
+| `#daily` | Every day |
+| `#weekly` | Once per week |
+| `#monthly` | Once per month |
+| `#2days` | Every 2 days |
+| `#3weeks` | Every 3 weeks |
+| `#5days` | Every 5 days |
+
+You can use any number with `days`, `weeks`, or `months` to create custom intervals.
+
+## Example habit setup
+
+Here's a realistic daily habit routine:
+
+```markdown
+# 2026-03-04
+
+## Morning routine
+
+- [ ] Meditate 10 minutes #daily
+- [ ] Journal #daily
+- [ ] Drink water first thing #daily
+- [ ] Stretching #daily
+
+## Health habits
+
+- [ ] Gym workout #3weekly
+- [ ] Meal prep #weekly
+- [ ] Track calories #daily
+- [ ] Weigh-in #weekly
+
+## Learning goals
+
+- [ ] Read 30 pages #daily
+- [ ] Practice Spanish on Duolingo #daily
+- [ ] Work on side project #3weekly
+
+## Life admin
+
+- [ ] Review finances #weekly
+- [ ] Clean desk #2days
+- [ ] Grocery shopping #weekly
+- [ ] Call parents #weekly
+```
+
+## Useful habit tracking widgets
+
+Generate these widgets to visualize and stay motivated:
+
+<AccordionGroup>
+  <Accordion title="Habit streak tracker">
+    **Prompt:** "Habit streak tracker. Shows current streak, best streak, and completion percentage for meditation, exercise, and reading. Display as cards with numbers."
+    
+    See your streaks at a glance and stay motivated to keep them alive.
+  </Accordion>
+  
+  <Accordion title="Weekly habit grid">
+    **Prompt:** "Weekly habit tracker grid. Rows for each habit (meditate, gym, read, Spanish). Columns for each day. Click to mark complete. Show current week."
+    
+    Visual grid showing which habits you've completed each day of the week.
+  </Accordion>
+  
+  <Accordion title="Monthly calendar view">
+    **Prompt:** "Monthly calendar showing days I completed my meditation habit. Green for done, gray for missed. Show current month."
+    
+    Calendar view of your habit completion patterns throughout the month.
+  </Accordion>
+  
+  <Accordion title="Habit score calculator">
+    **Prompt:** "Calculate my habit score as a percentage. Track meditation #daily, gym #3weekly, reading #daily. Show score out of 100 and visual progress bar."
+    
+    Quantify your overall habit adherence with a single score.
+  </Accordion>
+  
+  <Accordion title="Time-based habit tracker">
+    **Prompt:** "Habit tracker with time input. Record how many minutes I meditated, exercised, or read today. Show weekly total time for each habit."
+    
+    Track duration-based habits and see total time invested.
+  </Accordion>
+  
+  <Accordion title="Habit chain calendar">
+    **Prompt:** "Don't break the chain calendar for my writing habit. Show mini calendar with X marks for completed days. Display current streak number."
+    
+    Classic Jerry Seinfeld chain method visualization.
+  </Accordion>
+</AccordionGroup>
+
+## Building consistent habits
+
+<Tip>
+  **Start with keystone habits**: Choose 2-3 core habits that have ripple effects on other areas of your life.
+</Tip>
+
+<Tip>
+  **Stack habits**: Attach new habits to existing routines. "After I make coffee, I'll meditate."
+</Tip>
+
+<Tip>
+  **Track honestly**: Missing a day is data, not failure. Notice patterns in when you skip habits.
+</Tip>
+
+<Tip>
+  **Lower the barrier**: Make habits so easy you can't say no. "10 minutes" is better than "60 minutes" for starting out.
+</Tip>
+
+<Tip>
+  **Review weekly**: Every Sunday, review your habit completion rate and adjust what's not working.
+</Tip>
+
+## Combining tasks and widgets
+
+The most powerful habit tracking setup combines recurring tasks with widgets:
+
+1. **Recurring tasks** handle the scheduling and reminders
+2. **Widgets** visualize your progress and streaks
+3. **Journal entries** capture context about what helps or hinders your habits
+
+Example:
+
+```markdown
+# 2026-03-04
+
+## Morning habits
+
+- [x] Meditate 10 minutes #daily
+- [x] Journaling #daily  
+- [ ] Gym workout #3weekly
+
+**Widget: Habit Streak Tracker**
+[Your generated habit tracking widget appears here]
+
+## Reflection
+
+Meditation is getting easier. Noticed today that I'm less reactive to 
+distractions. The 10-minute timer feels perfect — long enough to settle 
+in but not so long that I dread it.
+
+Gym: Skipped today because of early meeting. Will go tomorrow instead.
+```
+
+## Tracking irregular habits
+
+Not all habits fit daily/weekly patterns:
+
+**Seasonal habits:**
+```markdown
+- [ ] Review quarterly goals #3months
+- [ ] Seasonal wardrobe swap #6months
+```
+
+**Threshold-based habits:**
+```markdown
+- [ ] Update budget (when paycheck arrives)
+- [ ] Sharpen kitchen knives (when they feel dull)
+- [ ] Back up computer (first of each month)
+```
+
+For these, use non-recurring tasks and add them manually when needed, or generate a custom widget.
+
+## Progress over perfection
+
+<Warning>
+  Missing a habit day doesn't mean you've failed. Consistency matters more than perfection. If you complete a habit 80% of the time, you're building a real routine.
+</Warning>
+
+Philo's automatic rollover helps with this — if you miss a habit, it's there waiting for you tomorrow. No need to manually reschedule.
+
+## Sample habit tracking setup
+
+Here's a complete 30-day habit building plan:
+
+**Week 1-2: Core habits only**
+- Morning meditation #daily
+- Evening walk #daily
+- Journal #daily
+
+**Week 3-4: Add movement**
+- Keep core habits
+- Gym workout #3weekly
+- Stretching #daily
+
+**Week 5-6: Add learning**
+- Keep all previous habits  
+- Read 30 pages #daily
+- Spanish practice #daily
+
+**Week 7-8: Add optimization**
+- Keep all previous habits
+- Review habits weekly #weekly
+- Meal prep #weekly
+
+Generate a habit score widget to track overall adherence and celebrate wins.
+
+## Motivation strategies
+
+**Visual progress**: Generate streak trackers and calendar views to see your consistency visually.
+
+**Micro-commitments**: Start ridiculously small. Two minutes of meditation counts. One page of reading counts.
+
+**Implementation intentions**: Be specific. "I will meditate at 7 AM in my bedroom" beats "I will meditate daily."
+
+**Habit stacking**: Attach new habits to existing triggers. "After I pour my coffee, I will journal for five minutes."
+
+**Environment design**: Make good habits obvious and easy. Put your journal next to your bed. Lay out gym clothes the night before.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Daily Journaling" icon="book-open" href="/use-cases/daily-journaling">
+    Learn how to integrate habit tracking into your daily journal workflow.
+  </Card>
+  
+  <Card title="Recurring Tasks" icon="rotate" href="/features/recurring-tasks">
+    Deep dive into recurring task syntax and scheduling options.
+  </Card>
+  
+  <Card title="AI Widgets" icon="wand-magic-sparkles" href="/features/ai-widgets">
+    Create custom habit tracking visualizations with AI.
+  </Card>
+  
+  <Card title="Task Rollover" icon="list-check" href="/features/tasks">
+    Understand how tasks automatically carry forward in Philo.
+  </Card>
+</CardGroup>

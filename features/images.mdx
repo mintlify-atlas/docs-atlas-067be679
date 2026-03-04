@@ -1,0 +1,384 @@
+---
+title: 'Images'
+description: 'Add images to your journal with drag-and-drop, paste support, and automatic asset management'
+---
+
+Philo provides seamless image handling with automatic asset management, local storage, and markdown-based referencing.
+
+## Adding Images
+
+### Drag and Drop
+
+Drag image files directly into the editor:
+
+```typescript
+FileHandler.configure({
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/gif", "image/webp"],
+  onDrop: (_editor: TiptapEditor, files: File[], pos: number) => {
+    (async () => {
+      for (const file of files) {
+        const relativePath = await saveImage(file);
+        const assetUrl = await resolveAssetUrl(relativePath);
+        _editor.chain().insertContentAt(pos, {
+          type: "image",
+          attrs: { src: assetUrl, alt: file.name },
+        }).focus().run();
+      }
+    })().catch(console.error);
+    return true;
+  },
+})
+```
+
+### Paste from Clipboard
+
+Paste images directly from clipboard:
+
+```typescript
+onPaste: (_editor: TiptapEditor, files: File[]) => {
+  (async () => {
+    for (const file of files) {
+      const relativePath = await saveImage(file);
+      const assetUrl = await resolveAssetUrl(relativePath);
+      _editor.chain().focus().insertContent({
+        type: "image",
+        attrs: { src: assetUrl, alt: file.name },
+      }).run();
+    }
+  })().catch(console.error);
+  return true;
+}
+```
+
+<CardGroup cols={2}>
+  <Card title="Supported Formats" icon="image">
+    PNG, JPEG, GIF, WebP
+  </Card>
+  <Card title="Automatic Storage" icon="database">
+    Files saved to assets directory with unique names
+  </Card>
+</CardGroup>
+
+## Image Storage
+
+Images are saved with timestamped, unique filenames:
+
+```typescript
+let imageIndex = 0;
+
+function generateFilename(ext: string): string {
+  const ts = Date.now();
+  const index = imageIndex++;
+  return `image_${ts}_${index}.${ext.toLowerCase()}`;
+}
+
+export async function saveImage(file: File): Promise<string> {
+  const assetsDir = await getAssetsDir();
+  const dirExists = await exists(assetsDir);
+  if (!dirExists) {
+    await mkdir(assetsDir, { recursive: true });
+  }
+
+  const ext = file.name.split(".").pop() || "png";
+  const filename = generateFilename(ext);
+  const fullPath = await join(assetsDir, filename);
+
+  const arrayBuffer = await file.arrayBuffer();
+  const uint8Array = new Uint8Array(arrayBuffer);
+
+  await writeFile(fullPath, uint8Array);
+
+  return filename;
+}
+```
+
+### Filename Examples
+
+```
+image_1709552400000_0.png
+image_1709552401234_1.jpg
+image_1709552402567_2.webp
+```
+
+<Note>
+The index counter prevents collisions even within the same millisecond.
+</Note>
+
+## Asset Directory
+
+Images are stored in a configurable assets directory:
+
+```typescript
+async function getAssetsRelativeRoot(): Promise<string> {
+  const configured = normalizePathSegment(await getAssetsFolderSetting());
+  return configured || "assets";
+}
+```
+
+Default location:
+- **Relative to journal:** `{journal}/assets/`
+- **Configurable via settings:** Custom path option
+
+## URL Resolution
+
+Images stored as relative paths are resolved to Tauri asset URLs:
+
+```typescript
+export async function resolveAssetUrl(relativePath: string): Promise<string> {
+  const absolutePath = await resolveAssetAbsolutePath(relativePath);
+  return convertFileSrc(absolutePath);
+}
+
+async function resolveAssetAbsolutePath(relativePath: string): Promise<string> {
+  const assetsRelativeRoot = await getAssetsRelativeRoot();
+  const assetSuffix = getAssetSuffix(relativePath, assetsRelativeRoot);
+  
+  if (assetSuffix !== null) {
+    const assetsDir = await getAssetsDir();
+    return assetSuffix ? await join(assetsDir, assetSuffix) : assetsDir;
+  }
+
+  const journalDir = await getJournalDir();
+  return await join(journalDir, normalizeRelativeAssetPath(relativePath));
+}
+```
+
+### Asset URL Format
+
+Tauri's `convertFileSrc()` produces URLs like:
+```
+http://asset.localhost/path/to/image.png
+```
+or
+```
+asset://localhost/path/to/image.png
+```
+
+<Warning>
+Do not use base64 encoding for images. Philo uses asset URLs for better performance and storage efficiency.
+</Warning>
+
+## Markdown Image Handling
+
+### Resolving Images in Markdown
+
+When loading markdown content, relative paths are resolved to asset URLs:
+
+```typescript
+export async function resolveMarkdownImages(markdown: string): Promise<string> {
+  const imagePattern = /!\[([^\]]*)\]\(([^)\s"]+)(?:\s+"([^"]*)")?\)/g;
+  const matches = [...markdown.matchAll(imagePattern)];
+  if (matches.length === 0) return markdown;
+
+  let result = markdown;
+
+  for (const match of matches) {
+    const [full, alt, path, title] = match;
+    if (isNonAssetUrl(path)) continue;
+
+    const relativePath = normalizeRelativeAssetPath(path);
+    const absolutePath = await resolveAssetAbsolutePath(relativePath);
+    if (!(await exists(absolutePath))) continue;
+
+    const assetUrl = convertFileSrc(absolutePath);
+    const replacement = title
+      ? `![${alt}](${assetUrl} "${title}")`
+      : `![${alt}](${assetUrl})`;
+    result = result.replace(full, replacement);
+  }
+
+  return result;
+}
+```
+
+### Unresolving Images in Markdown
+
+When saving, asset URLs are converted back to relative paths:
+
+```typescript
+export function unresolveMarkdownImages(markdown: string): string {
+  const assetUrlPattern =
+    /!\[([^\]]*)\]\(((?:http:\/\/asset\.localhost|asset:\/\/localhost)[^)\s"]+)(?:\s+"([^"]*)")?\)/g;
+
+  return markdown.replace(assetUrlPattern, (_full, alt, url, title) => {
+    let filename = "";
+    try {
+      const parsed = new URL(url);
+      const segments = decodeURIComponent(parsed.pathname).split("/").filter(Boolean);
+      filename = segments[segments.length - 1] || "";
+    } catch {
+      const match = String(url).match(/\/([^/]+)$/);
+      filename = match ? match[1] : "";
+    }
+    if (!filename) {
+      return title
+        ? `![${alt}](${url} "${title}")`
+        : `![${alt}](${url})`;
+    }
+    return title
+      ? `![${alt}](${filename} "${title}")`
+      : `![${alt}](${filename})`;
+  });
+}
+```
+
+<Tip>
+Storing relative paths in markdown makes notes portable across different systems.
+</Tip>
+
+## Path Normalization
+
+Various path formats are normalized to consistent relative paths:
+
+```typescript
+function normalizeRelativeAssetPath(path: string): string {
+  return path.replace(/^(?:\.\.\/)+/, "");
+}
+
+function normalizePathSegment(segment: string): string {
+  return segment.replace(/^\.?\//, "").replace(/\/$/, "");
+}
+
+function getAssetSuffix(
+  relativePath: string,
+  assetsRelativeRoot: string,
+): string | null {
+  const normalized = normalizeRelativeAssetPath(relativePath);
+  if (!normalized) return null;
+  
+  const prefix = `${assetsRelativeRoot}/`;
+  if (normalized === assetsRelativeRoot) {
+    return "";
+  }
+  if (normalized.startsWith(prefix)) {
+    return normalized.slice(prefix.length);
+  }
+  if (!normalized.includes("/")) {
+    return normalized;
+  }
+  return null;
+}
+```
+
+### Supported Path Formats
+
+```markdown
+![Alt text](image_123_0.png)
+![Alt text](assets/image_123_0.png)
+![Alt text](./assets/image_123_0.png)
+![Alt text](../assets/image_123_0.png)
+```
+
+All resolve to the same asset file.
+
+## URL Detection
+
+External URLs and data URIs are not processed:
+
+```typescript
+function isNonAssetUrl(path: string): boolean {
+  return /^(?:[a-z]+:)?\/\//i.test(path)
+    || /^[a-z]+:/i.test(path)
+    || path.startsWith("/")
+    || path.startsWith("#");
+}
+```
+
+**Examples of non-asset URLs:**
+```markdown
+![External](https://example.com/image.png)
+![Data](data:image/png;base64,...)
+![Absolute](/absolute/path/image.png)
+```
+
+These are left as-is during resolution.
+
+## Editor Configuration
+
+The Tiptap Image extension is configured for inline images:
+
+```typescript
+Image.configure({ 
+  inline: true, 
+  allowBase64: false 
+})
+```
+
+<Note>
+`allowBase64: false` prevents base64 encoding, ensuring all images use the asset system.
+</Note>
+
+## Best Practices
+
+<Steps>
+  <Step title="Use drag-and-drop">
+    Fastest way to add images—just drag from file manager into editor
+  </Step>
+  <Step title="Optimize before adding">
+    Compress large images to save storage space
+  </Step>
+  <Step title="Add alt text">
+    Provide descriptive alt text for accessibility
+  </Step>
+  <Step title="Backup assets folder">
+    Include the assets directory when backing up your journal
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Image not displaying">
+    - Verify the file exists in the assets directory
+    - Check that the filename in markdown matches the saved file
+    - Ensure the file format is supported (PNG, JPEG, GIF, WebP)
+    - Try resolving the asset URL manually with `resolveAssetUrl()`
+  </Accordion>
+  
+  <Accordion title="Drag-and-drop not working">
+    - Confirm FileHandler extension is configured
+    - Check browser console for errors
+    - Verify file MIME type is in `allowedMimeTypes`
+  </Accordion>
+  
+  <Accordion title="Assets directory missing">
+    - Philo creates it automatically on first image save
+    - Check filesystem permissions
+    - Verify journal directory is properly configured
+  </Accordion>
+  
+  <Accordion title="Broken images after moving journal">
+    - Ensure you moved the entire assets directory
+    - Check that assets folder setting is correct
+    - Try re-resolving images with `resolveMarkdownImages()`
+  </Accordion>
+</AccordionGroup>
+
+## Performance Considerations
+
+<CardGroup cols={2}>
+  <Card title="No base64" icon="gauge-high">
+    Asset URLs load faster than base64-encoded images
+  </Card>
+  <Card title="Lazy loading" icon="hourglass">
+    Images only load when visible in viewport
+  </Card>
+  <Card title="Unique filenames" icon="fingerprint">
+    Prevents caching issues and filename collisions
+  </Card>
+  <Card title="Local storage" icon="hard-drive">
+    No network requests—all images stored locally
+  </Card>
+</CardGroup>
+
+<Warning>
+Deleting images from the assets folder will break references in journal entries. Philo does not currently track image usage.
+</Warning>
+
+## Future Enhancements
+
+- **Image compression:** Automatic optimization on save
+- **Usage tracking:** Identify and clean up unused images
+- **Gallery view:** Browse all images across journal
+- **Image editing:** Basic cropping and rotation
+- **Cloud sync:** Optional cloud storage for assets

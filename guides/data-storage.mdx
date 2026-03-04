@@ -1,0 +1,232 @@
+---
+title: Data Storage
+description: Understand how Philo stores your journal entries and where to find your data
+---
+
+Philo stores all your journal entries as plain markdown files on your local filesystem. Your data never leaves your device.
+
+## Storage Location
+
+### Default Directory
+
+Philo stores journal entries in your application data directory:
+
+**Development:**
+```
+~/Library/Application Support/com.philo.dev/journal/
+```
+
+**Production:**
+```
+~/Library/Application Support/philo/journal/
+```
+
+**Location:** `src/services/paths.ts:27-36`
+
+### Custom Vault Directory
+
+You can configure a custom vault directory in Settings (⌘,). This is useful for:
+- Storing notes in an existing Obsidian vault
+- Syncing notes via Dropbox or iCloud
+- Organizing notes in a specific location
+
+When a vault directory is set, journal files are stored in:
+```
+{vaultDir}/{dailyLogsFolder}/
+```
+
+**Location:** `src/services/paths.ts:43-60`
+
+## File Format
+
+### Filename Pattern
+
+By default, journal files use the pattern `{YYYY}-{MM}-{DD}.md`:
+
+```
+2026-03-04.md
+2026-03-03.md
+2026-03-02.md
+```
+
+You can customize the filename pattern in Settings with these tokens:
+- `{YYYY}` - Four-digit year
+- `{MM}` - Two-digit month
+- `{DD}` - Two-digit day
+
+**Common patterns:**
+
+**Flat structure:**
+```
+{YYYY}-{MM}-{DD}
+→ 2026-03-04.md
+```
+
+**By year:**
+```
+{YYYY}/{YYYY}-{MM}-{DD}
+→ 2026/2026-03-04.md
+```
+
+**By year and month:**
+```
+{YYYY}/{MM}/{YYYY}-{MM}-{DD}
+→ 2026/03/2026-03-04.md
+```
+
+**Location:** `src/services/paths.ts:124-140`
+
+### Markdown Structure
+
+Each daily note is a standard markdown file with optional frontmatter:
+
+```markdown
+---
+city: San Francisco
+---
+
+## Morning
+
+- [ ] Meditate #daily
+- [x] Review yesterday's notes
+
+Started working on the new feature...
+
+## Afternoon
+
+Calorie tracker for lunch
+```
+
+### Frontmatter
+
+Philo supports an optional `city` field in YAML frontmatter to track your location:
+
+```markdown
+---
+city: San Francisco
+---
+```
+
+If you change locations, the city field automatically shows transitions:
+
+```markdown
+---
+city: San Francisco → New York
+---
+```
+
+**Location:** `src/services/storage.ts:8-23`
+
+### Task Format
+
+Tasks use standard markdown checkboxes:
+
+```markdown
+- [ ] Unchecked task
+- [x] Completed task
+- [ ] Recurring task #daily
+- [ ] Another recurring task #weekly
+```
+
+**Recurring tasks** use hashtags:
+- `#daily` - Repeats every day
+- `#weekly` - Repeats every week
+- `#monthly` - Repeats every month
+- `#2days` - Repeats every 2 days
+- `#3weeks` - Repeats every 3 weeks
+
+### Widgets
+
+Widgets are stored as HTML div elements with data attributes:
+
+```html
+<div data-widget="" 
+     data-id="550e8400-e29b-41d4-a716-446655440000"
+     data-prompt="Calorie tracker for lunch"
+     data-spec='{"type":"calculator","props":{}}'
+     data-saved="true"></div>
+```
+
+**Location:** `src/components/editor/extensions/widget/WidgetExtension.ts:61-69`
+
+## Additional Folders
+
+### Assets Folder
+
+Pasted images are saved to the assets folder:
+
+```
+{vaultDir}/assets/
+```
+
+or if configured:
+
+```
+{journalDir}/assets/
+```
+
+**Location:** `src/services/paths.ts:96-107`
+
+### Excalidraw Folder
+
+If you use Excalidraw embeds, they're stored in:
+
+```
+{vaultDir}/{excalidrawFolder}/
+```
+
+**Location:** `src/services/paths.ts:109-117`
+
+## File Operations
+
+### Reading Notes
+
+Philo reads markdown files using the Tauri filesystem API:
+
+```typescript
+const raw = await invoke<string | null>("read_markdown_file", { 
+  path: filepath 
+});
+```
+
+**Location:** `src/services/storage.ts:36-46`
+
+### Writing Notes
+
+When you edit a note, Philo:
+1. Converts editor JSON to markdown
+2. Adds frontmatter if a city is set
+3. Writes to disk with automatic directory creation
+
+```typescript
+await invoke("write_markdown_file", {
+  path: filepath,
+  content: buildFrontmatter(note.city, body)
+});
+```
+
+**Location:** `src/services/storage.ts:25-34`
+
+### File Permissions
+
+Philo uses Tauri's scoped filesystem access. On first launch, you may need to grant permission to access your chosen vault directory.
+
+**Location:** `src/services/paths.ts:66-94`
+
+## Data Migration
+
+### Changing Storage Location
+
+<Warning>
+Changing the vault directory or filename pattern does not move or rename existing files. You'll need to manually move files if you want to migrate your journal.
+</Warning>
+
+### Obsidian Compatibility
+
+Philo can detect and use Obsidian vault settings:
+- Daily notes folder
+- Filename pattern
+- Excalidraw folder
+- Assets folder
+
+**Location:** `src/services/obsidian.ts`

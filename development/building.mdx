@@ -1,0 +1,191 @@
+---
+title: Building for Production
+description: Build Philo desktop applications for macOS, Windows, and Linux
+---
+
+Philo is built using Tauri v2, which allows you to create native desktop applications for macOS, Windows, and Linux.
+
+## Build Prerequisites
+
+Before building, ensure you have:
+
+- Completed the [Development Setup](/development/setup)
+- Installed all platform-specific dependencies
+- Run `bun install --frozen-lockfile` to install dependencies
+
+## Building the App
+
+<Steps>
+  <Step title="Type-check and build frontend">
+    First, ensure your TypeScript code is error-free and build the frontend:
+    ```bash
+    bun run build
+    ```
+
+    This command:
+    1. Runs `tsc` to type-check all TypeScript files
+    2. Builds the Vite frontend bundle for production
+  </Step>
+
+  <Step title="Build the Tauri app">
+    Build the desktop application for your current platform:
+    ```bash
+    bun tauri build
+    ```
+
+    This will create platform-specific installers in the `src-tauri/target/release/bundle/` directory.
+  </Step>
+</Steps>
+
+## Platform-Specific Builds
+
+### macOS
+
+<Tabs>
+  <Tab title="Apple Silicon (ARM64)">
+    Build for Apple Silicon Macs (M1/M2/M3):
+    ```bash
+    bun tauri build --target aarch64-apple-darwin
+    ```
+
+    Output: `.dmg` and `.app` files in `src-tauri/target/aarch64-apple-darwin/release/bundle/`
+  </Tab>
+  <Tab title="Intel (x86_64)">
+    Build for Intel-based Macs:
+    ```bash
+    rustup target add x86_64-apple-darwin
+    bun tauri build --target x86_64-apple-darwin
+    ```
+
+    Output: `.dmg` and `.app` files in `src-tauri/target/x86_64-apple-darwin/release/bundle/`
+  </Tab>
+</Tabs>
+
+### Windows
+
+On Windows, the default build produces:
+```bash
+bun tauri build
+```
+
+Output formats:
+- `.exe` installer (NSIS)
+- `.msi` installer (MSI)
+
+Located in `src-tauri/target/release/bundle/`
+
+### Linux
+
+On Linux (Ubuntu 22.04 recommended):
+```bash
+bun tauri build
+```
+
+Output formats:
+- `.deb` package (Debian/Ubuntu)
+- `.AppImage` (portable)
+
+Located in `src-tauri/target/release/bundle/`
+
+## Build Artifacts
+
+After building, you'll find the following in `src-tauri/target/release/bundle/`:
+
+<Tabs>
+  <Tab title="macOS">
+    - `dmg/` - macOS disk image installer (`.dmg`)
+    - `macos/` - macOS application bundle (`.app`)
+  </Tab>
+  <Tab title="Windows">
+    - `nsis/` - NSIS installer (`.exe`)
+    - `msi/` - Windows Installer package (`.msi`)
+  </Tab>
+  <Tab title="Linux">
+    - `deb/` - Debian package (`.deb`)
+    - `appimage/` - AppImage portable executable
+  </Tab>
+</Tabs>
+
+## Development Builds
+
+For faster iteration during development, you can create debug builds:
+
+```bash
+cd src-tauri
+cargo build
+```
+
+Debug builds are significantly faster but produce larger binaries. Find them in `src-tauri/target/debug/`.
+
+## Pre-Build Checks
+
+Before creating a production build, always run:
+
+<CodeGroup>
+```bash TypeScript
+# Type-check TypeScript
+bun run typecheck
+
+# Format code
+bun run fmt
+```
+
+```bash Rust
+# Check Rust code
+cd src-tauri && cargo check
+
+# Run clippy linter
+cd src-tauri && cargo clippy
+
+# Format Rust code
+cd src-tauri && cargo fmt
+```
+</CodeGroup>
+
+Or use the combined check command:
+```bash
+bun run check
+```
+
+## Troubleshooting Build Issues
+
+### Build Fails on Type Errors
+
+Run type-check separately to see detailed errors:
+```bash
+bun run typecheck
+```
+
+### Rust Compilation Errors
+
+Check for Rust errors before building:
+```bash
+cd src-tauri
+cargo check
+cargo clippy
+```
+
+### Submodule Not Found
+
+Ensure git submodules are initialized:
+```bash
+git submodule update --init --recursive
+```
+
+### Platform-Specific Dependencies Missing
+
+On Linux, ensure all WebKit dependencies are installed:
+```bash
+sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Release Process" icon="rocket" href="/development/contributing#releases">
+    Learn how to create and publish releases
+  </Card>
+  <Card title="CI/CD Workflows" icon="circle-check" href="/development/contributing#continuous-integration">
+    Understand automated builds and testing
+  </Card>
+</CardGroup>

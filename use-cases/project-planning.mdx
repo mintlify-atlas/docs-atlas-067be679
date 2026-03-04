@@ -1,0 +1,393 @@
+---
+title: "Project Planning"
+description: "Manage projects, track milestones, and build custom planning tools right in your journal"
+icon: "diagram-project"
+---
+
+Philo's combination of markdown notes, task management, and AI-generated widgets makes it a powerful project planning companion. Keep project notes, tasks, and custom tracking tools all in one place.
+
+## Project planning workflow
+
+<Steps>
+  <Step title="Create project overview">
+    Start a new journal entry or section with your project overview. Define goals, scope, and success criteria.
+  </Step>
+  
+  <Step title="Break down into tasks">
+    List all tasks needed to complete the project using checkboxes. Add recurring check-ins with tags like `#weekly`.
+  </Step>
+  
+  <Step title="Generate tracking widgets">
+    Create custom widgets for progress tracking, timelines, kanban boards, or countdown timers.
+  </Step>
+  
+  <Step title="Daily check-ins">
+    Each day, review project tasks, update progress in your widgets, and write notes about blockers or insights.
+  </Step>
+  
+  <Step title="Weekly reviews">
+    Add a recurring task to review project status weekly. Assess what's working and adjust your plan.
+  </Step>
+</Steps>
+
+## Example project entry
+
+Here's what a project planning entry might look like:
+
+```markdown
+# Project: Website Redesign
+
+## Overview
+
+**Goal**: Launch redesigned marketing site by April 15
+**Why**: Current site conversion rate is 2%, industry average is 5%
+**Success metrics**: 
+- Increase conversion rate to 4%+
+- Improve mobile load time to <2s
+- Positive feedback from 10+ beta users
+
+## Milestones
+
+- [ ] Complete design mockups — Due: March 15
+- [ ] Finish frontend development — Due: March 30  
+- [ ] Content migration — Due: April 5
+- [ ] QA testing complete — Due: April 10
+- [ ] Launch — Target: April 15
+
+## This week's tasks
+
+- [ ] Finalize homepage hero design
+- [ ] Set up component library
+- [ ] Review copy with marketing team
+- [ ] Weekly project standup #weekly
+
+**Widget: Project Progress Tracker**
+[Generated widget showing % complete and days remaining]
+
+## Notes
+
+**March 4**: Initial design feedback was positive. Team loves the new 
+color scheme. Main concern: navigation might be too minimal. Will test 
+with users this week.
+
+**Blockers**: 
+- Waiting on final logo from design agency
+- Need hosting decision from engineering
+
+**Next steps**:
+- Schedule user testing sessions
+- Begin component development
+- Draft launch announcement
+```
+
+## Useful project planning widgets
+
+Generate these widgets to manage projects effectively:
+
+<AccordionGroup>
+  <Accordion title="Kanban board">
+    **Prompt:** "Simple kanban board with three columns: To Do, In Progress, Done. Let me add cards by typing task names. Allow drag and drop between columns."
+    
+    Visual project board to move tasks through stages.
+  </Accordion>
+  
+  <Accordion title="Progress tracker">
+    **Prompt:** "Project progress tracker. Show tasks completed vs. total (e.g. 12/24), percentage complete as progress bar, and estimated days remaining until April 15 deadline."
+    
+    See project completion status at a glance.
+  </Accordion>
+  
+  <Accordion title="Countdown timer">
+    **Prompt:** "Countdown to April 15 launch date. Show days, hours, minutes remaining. Display as large numbers with 'until launch' label."
+    
+    Visual countdown to keep deadline top of mind.
+  </Accordion>
+  
+  <Accordion title="Milestone timeline">
+    **Prompt:** "Horizontal timeline showing project milestones. Display Design (Mar 15), Development (Mar 30), Testing (Apr 10), Launch (Apr 15). Highlight upcoming milestone."
+    
+    See all milestones on a visual timeline.
+  </Accordion>
+  
+  <Accordion title="Risk tracker">
+    **Prompt:** "Project risk tracker. List risks with severity (high/medium/low) and status (monitoring/mitigating/resolved). Show high-priority risks in red."
+    
+    Keep track of project risks and mitigation status.
+  </Accordion>
+  
+  <Accordion title="Sprint planner">
+    **Prompt:** "2-week sprint planner. Shows current sprint number, sprint goal, tasks in sprint, points completed vs. planned. Calculate sprint velocity."
+    
+    Agile sprint planning and tracking.
+  </Accordion>
+  
+  <Accordion title="Burndown chart">
+    **Prompt:** "Simple burndown chart. Plot remaining tasks over time from project start to April 15 deadline. Show ideal pace vs. actual pace lines."
+    
+    Visualize if you're on track to meet your deadline.
+  </Accordion>
+  
+  <Accordion title="Time budget tracker">
+    **Prompt:** "Track time spent on project phases. Budget: Design 40hrs, Development 80hrs, Testing 20hrs. Show hours used and remaining for each with progress bars."
+    
+    Monitor time allocation across project phases.
+  </Accordion>
+</AccordionGroup>
+
+## Multi-project management
+
+Track several projects simultaneously:
+
+```markdown
+# 2026-03-04
+
+## Project: Website Redesign (Active)
+
+- [ ] Complete homepage mockups
+- [ ] Review with stakeholders #weekly
+
+**Widget: Progress — 45% complete, 41 days remaining**
+
+---
+
+## Project: Mobile App Feature (Planning)
+
+- [ ] Write technical spec
+- [ ] Resource estimation
+- [ ] Kickoff meeting scheduled for March 10
+
+**Status**: Waiting for PM approval
+
+---
+
+## Project: Q1 Marketing Campaign (Completed)
+
+✅ Launched Feb 28  
+✅ Post-mortem completed  
+📈 Results: 12% increase in signups
+
+---
+
+## Today's focus
+
+Website redesign is priority. Will spend morning on mockups, 
+afternoon on stakeholder prep.
+```
+
+## Task scheduling strategies
+
+**Recurring check-ins:**
+```markdown
+- [ ] Review project status #weekly
+- [ ] Update stakeholders #weekly
+- [ ] Sprint planning #2weeks
+```
+
+**Milestone reminders:**
+```markdown
+- [ ] Design due March 15
+- [ ] Dev complete March 30
+- [ ] QA done April 10
+```
+
+**Rolling tasks:**
+Tasks not checked off automatically roll to the next day, so nothing falls through the cracks.
+
+## Project templates
+
+Create reusable templates for common project types:
+
+<Tabs>
+  <Tab title="Software project">
+    ```markdown
+    # Project: [Name]
+    
+    ## Overview
+    - Goal:
+    - Timeline:
+    - Team:
+    - Success metrics:
+    
+    ## Phases
+    - [ ] Planning & design
+    - [ ] Development
+    - [ ] Testing
+    - [ ] Launch
+    
+    ## Weekly tasks
+    - [ ] Team standup #weekly
+    - [ ] Status update #weekly
+    - [ ] Risk review #weekly
+    
+    ## Notes
+    [Daily project updates]
+    ```
+  </Tab>
+  
+  <Tab title="Content project">
+    ```markdown
+    # Project: [Name]
+    
+    ## Brief
+    - Audience:
+    - Goal:
+    - Deadline:
+    - Distribution channels:
+    
+    ## Content pieces
+    - [ ] Research & outline
+    - [ ] First draft
+    - [ ] Edit
+    - [ ] Review
+    - [ ] Publish
+    
+    ## Weekly tasks
+    - [ ] Writing session #3weekly
+    - [ ] Progress check-in #weekly
+    
+    ## Notes
+    [Daily writing updates]
+    ```
+  </Tab>
+  
+  <Tab title="Event planning">
+    ```markdown
+    # Event: [Name]
+    
+    ## Details
+    - Date:
+    - Location:
+    - Expected attendance:
+    - Budget:
+    
+    ## Tasks
+    - [ ] Venue booking
+    - [ ] Catering arranged
+    - [ ] Invites sent
+    - [ ] A/V setup confirmed
+    - [ ] Day-of timeline created
+    
+    ## Weekly tasks
+    - [ ] Vendor check-ins #weekly
+    - [ ] RSVP tracking #weekly
+    
+    ## Notes
+    [Planning updates]
+    ```
+  </Tab>
+</Tabs>
+
+## Collaboration notes
+
+While Philo is a personal tool, you can use it to track collaborative projects:
+
+```markdown
+# Team Project Notes
+
+## Last meeting (March 4)
+
+**Attendees**: Sarah, Mike, Jessica, Me
+
+**Decisions**:
+- Moving design deadline to March 18 (was March 15)
+- Adding extra QA phase
+- Sarah owns frontend, Mike owns backend
+
+**Action items**:
+- [ ] Send updated timeline to stakeholders (Me)
+- [ ] Set up staging environment (Mike)
+- [ ] Schedule user testing (Sarah)
+
+**Next meeting**: March 11, 2pm
+
+**Widget: Team Task Tracker**
+[Widget showing who owns which tasks]
+```
+
+## Tips for effective project planning
+
+<Tip>
+  **Start with why**: Clearly define project goals and success criteria before diving into tasks.
+</Tip>
+
+<Tip>
+  **Break down large tasks**: Any task taking more than a day should be broken into smaller subtasks.
+</Tip>
+
+<Tip>
+  **Build in buffer**: Add 20-30% buffer time to estimates. Projects always take longer than expected.
+</Tip>
+
+<Tip>
+  **Daily review**: Spend 5 minutes each morning reviewing project status and prioritizing today's work.
+</Tip>
+
+<Tip>
+  **Capture blockers**: Write down what's blocking progress immediately. Review blockers in weekly check-ins.
+</Tip>
+
+<Tip>
+  **Celebrate milestones**: When you complete a major milestone, write about it. Momentum matters.
+</Tip>
+
+## Weekly project review template
+
+Add this as a recurring weekly task:
+
+```markdown
+# Weekly Project Review — March 4
+
+## Progress this week
+- ✅ Completed homepage mockups
+- ✅ Set up development environment  
+- ⏳ Stakeholder review in progress
+- ❌ Didn't finish component library setup
+
+## Wins
+- Design feedback was overwhelmingly positive
+- Found great React component library that will save time
+
+## Challenges
+- Component library setup more complex than expected
+- Waiting on logo from design agency (3 days delayed)
+
+## Next week priorities
+1. Complete component library setup
+2. Begin homepage development
+3. Finalize copy with marketing
+
+## Adjustments needed
+- May need to push development deadline by 3 days
+- Consider bringing in contractor for component work
+
+**Overall status**: 🟢 On track (with minor adjustments)
+```
+
+## Saving project widgets
+
+When you generate useful project widgets:
+
+1. Press **⌘J** to open widget library
+2. Save widgets you'll reuse (progress trackers, kanban boards)
+3. Reuse saved widgets across projects
+4. Delete old project widgets when projects complete
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="AI Widgets" icon="wand-magic-sparkles" href="/features/ai-widgets">
+    Learn how to generate custom project management widgets.
+  </Card>
+  
+  <Card title="Task Management" icon="list-check" href="/features/tasks">
+    Master task rollover and checkbox tasks for project tracking.
+  </Card>
+  
+  <Card title="Daily Journaling" icon="book-open" href="/use-cases/daily-journaling">
+    Integrate project planning into your daily journal workflow.
+  </Card>
+  
+  <Card title="Widget Library" icon="book-bookmark" href="/features/widget-library">
+    Save and reuse project planning widgets across notes.
+  </Card>
+</CardGroup>

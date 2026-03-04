@@ -1,0 +1,321 @@
+---
+title: Customization
+description: Customize Philo's appearance, behavior, and file organization
+---
+
+Philo offers several ways to customize your journaling experience.
+
+## Theme
+
+### Dark Mode
+
+Philo automatically follows your system theme preference:
+
+**macOS:**  
+System Settings → Appearance → Light/Dark
+
+**Automatic switching:**
+Philo uses CSS media queries to detect and apply dark mode:
+
+```css
+@media (prefers-color-scheme: dark) {
+  /* Dark theme styles */
+}
+```
+
+The theme switches instantly when you change your system preference, with no app restart required.
+
+**Colors:**
+
+**Light mode:**
+- Background: White
+- Text: Gray-900
+- Accents: Violet-600
+
+**Dark mode:**
+- Background: Gray-900
+- Text: White
+- Accents: Violet-400
+
+## File Organization
+
+### Filename Patterns
+
+Customize how your daily notes are organized with filename patterns.
+
+**Access:** Settings (⌘,) → Filename Pattern
+
+**Available tokens:**
+- `{YYYY}` - Year (e.g., `2026`)
+- `{MM}` - Month (e.g., `03`)
+- `{DD}` - Day (e.g., `04`)
+
+**Examples:**
+
+**Chronological hierarchy:**
+```
+{YYYY}/{MM}/{DD}
+→ 2026/03/04.md
+```
+
+**Month names (requires custom token):**
+```
+{YYYY}/{MM}-March/{YYYY}-{MM}-{DD}
+→ 2026/03-March/2026-03-04.md
+```
+
+**Project-based:**
+```
+Journal/{YYYY}/{YYYY}-{MM}-{DD}
+→ Journal/2026/2026-03-04.md
+```
+
+**Location:** `src/services/paths.ts:124-140`
+
+### Folder Structure
+
+Organize your vault with custom folders:
+
+```
+Vault/
+├── Daily Notes/     ← dailyLogsFolder
+├── Excalidraw/      ← excalidrawFolder
+├── assets/          ← assetsFolder
+├── Projects/
+├── Archive/
+└── Templates/
+```
+
+**Configure in Settings (⌘,):**
+- Daily logs folder
+- Excalidraw folder
+- Assets folder
+
+**Location:** `src/services/settings.ts:85-98`
+
+## Storage Location
+
+### Custom Vault Directory
+
+Store your journal in any location:
+
+**Use cases:**
+- Sync via Dropbox: `~/Dropbox/Journal/`
+- iCloud Drive: `~/Library/Mobile Documents/com~apple~CloudDocs/Journal/`
+- Existing Obsidian vault: `~/Documents/Obsidian/MyVault/`
+- Network drive: `/Volumes/NAS/Journal/`
+
+**How to change:**
+1. Open Settings (⌘,)
+2. Click **Choose...** next to Vault Location
+3. Select directory
+4. Configure Daily logs folder
+5. Click **Save**
+
+**Location:** `src/services/paths.ts:43-60`
+
+## Obsidian Integration
+
+### Using Philo with Obsidian
+
+Philo can work alongside Obsidian in the same vault:
+
+**Setup:**
+1. Point Philo's vault to your Obsidian vault
+2. Set Daily logs folder to match Obsidian's daily notes folder
+3. Philo will auto-detect other settings
+
+**Compatible features:**
+- Daily notes
+- Task lists
+- Images
+- Frontmatter
+- Excalidraw embeds
+
+**Widgets:**
+Widgets are stored as HTML and won't render in Obsidian. They appear as empty div elements.
+
+**Location:** `src/services/obsidian.ts`
+
+### Obsidian Auto-Detection
+
+When you select an Obsidian vault, Philo automatically detects:
+
+**From `.obsidian/daily-notes.json`:**
+- Daily notes folder
+- Filename format (converted to Philo pattern)
+
+**From `.obsidian/plugins/obsidian-excalidraw-plugin/data.json`:**
+- Excalidraw folder
+
+**From `.obsidian/app.json`:**
+- Assets folder
+
+**Location:** `src/components/settings/SettingsModal.tsx:77-93`
+
+## Editor Customization
+
+### Fonts
+
+Philo uses carefully selected fonts:
+
+**Body text:**
+- System font stack for optimal readability
+
+**Headings:**
+- Instrument Serif (italic) for date headers
+- Creates a distinctive journal aesthetic
+
+**Code & settings:**
+- IBM Plex Mono for monospaced content
+- Used in settings, filenames, and code blocks
+
+### Bubble Menu
+
+The bubble menu appears when you select text, offering:
+- **Bold**
+- **Italic**
+- **Strikethrough**
+- **Code**
+- **Build** (⌘↵)
+
+Customize which formatting options appear by editing:
+
+**Location:** `src/components/editor/EditorBubbleMenu.tsx`
+
+## Tasks
+
+### Recurring Task Intervals
+
+Create custom recurring tasks with flexible intervals:
+
+**Supported formats:**
+- `#daily` - Every day
+- `#weekly` - Every week
+- `#monthly` - Every month
+- `#2days` - Every 2 days
+- `#3weeks` - Every 3 weeks
+- `#45days` - Every 45 days
+
+**How it works:**
+1. Add a task: `- [ ] Exercise #daily`
+2. Check it off: `- [x] Exercise #daily`
+3. On next app launch, it reappears unchecked
+
+**Location:** `src/services/tasks.ts`
+
+### Task Rollover
+
+Unchecked tasks automatically move to today's note on app launch.
+
+**Example:**
+Yesterday's note:
+```markdown
+- [x] Morning pages
+- [ ] Call dentist
+- [ ] Review budget
+```
+
+Today's note (after rollover):
+```markdown
+- [ ] Call dentist
+- [ ] Review budget
+```
+
+**Location:** `src/services/tasks.ts`
+
+## Widgets
+
+### Widget Library
+
+Save and reuse your favorite widgets:
+
+1. Generate a widget (⌘↵)
+2. Click **Save to library**
+3. Access anytime with ⌘J
+4. Insert into any note
+
+**Storage:**
+Widgets are saved in:
+```
+~/Library/Application Support/philo/library.db
+```
+
+### Widget Behavior
+
+**Temporary by default:**
+Generated widgets are disposable unless you explicitly save them.
+
+**Save to library:**
+Click the save button to add a widget to your permanent library.
+
+**Reuse:**
+Press ⌘J to browse saved widgets and insert them anywhere.
+
+## Advanced Customization
+
+### Settings File
+
+Direct access to settings JSON:
+
+```bash
+~/Library/Application Support/philo/settings.json
+```
+
+**Edit manually:**
+```json
+{
+  "anthropicApiKey": "sk-ant-...",
+  "vaultDir": "/Users/you/Documents/Journal",
+  "dailyLogsFolder": "Daily Notes",
+  "filenamePattern": "{YYYY}/{MM}/{YYYY}-{MM}-{DD}",
+  "excalidrawFolder": "Excalidraw",
+  "assetsFolder": "assets"
+}
+```
+
+<Warning>
+Edit settings.json while Philo is closed to avoid conflicts. Changes take effect on next launch.
+</Warning>
+
+**Location:** `src/services/settings.ts:36-57`
+
+### File System Scope
+
+Philo uses Tauri's scoped filesystem access. When you change vault directory, Philo automatically extends its permissions.
+
+**Manual scope extension:**
+If you move files outside Philo, you may need to reset the vault directory in settings to grant permissions.
+
+**Location:** `src/services/paths.ts:66-94`
+
+## UI Customization
+
+### Window Opacity (macOS)
+
+Philo supports window opacity customization on macOS:
+
+**Implementation:**
+```typescript
+await invoke("set_window_opacity", { opacity: 0.95 });
+```
+
+**Location:** `src-tauri/src/lib.rs:20-31`
+
+<Info>
+This feature is macOS-only and requires custom implementation in your fork.
+</Info>
+
+### Floating Today Button
+
+The "Go to Today" button appears when you scroll away from today's note:
+
+**Behavior:**
+- Appears when scrolled to past notes
+- Hides when viewing today
+- Smooth scroll to today on click
+
+**Customize appearance:**
+Edit button styles in the main layout component.
+
+**Location:** `src/components/layout/AppLayout.tsx`

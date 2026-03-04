@@ -1,0 +1,233 @@
+---
+title: 'Tasks'
+description: 'Task management with automatic rollover and nested task support'
+---
+
+Philo includes a powerful task management system that automatically rolls over incomplete tasks from previous days to keep your to-do list current.
+
+## Task Format
+
+Tasks use standard Markdown checkbox syntax:
+
+```markdown
+- [ ] Unchecked task
+- [x] Checked task
+  - [ ] Nested subtask
+  - [x] Completed subtask
+```
+
+### Task Patterns
+
+Philo recognizes two task patterns:
+
+```typescript
+// Unchecked tasks
+const UNCHECKED_TASK = /^(\s*)[-*] \[ \] (.+)$/;
+
+// Checked tasks  
+const CHECKED_TASK = /^(\s*)[-*] \[x\] (.+)$/i;
+```
+
+<Note>
+Both `-` and `*` are supported as list markers, and the check is case-insensitive.
+</Note>
+
+## Task Rollover
+
+The `rolloverTasks()` function automatically moves incomplete tasks from past days to today's note.
+
+### How It Works
+
+<Steps>
+  <Step title="Scan past notes">
+    Checks the last 30 days (configurable) for unchecked tasks
+  </Step>
+  <Step title="Extract tasks">
+    Removes unchecked tasks from source notes while preserving indentation
+  </Step>
+  <Step title="Check for recurring tasks">
+    Identifies completed tasks with recurrence tags (e.g., #daily, #weekly)
+  </Step>
+  <Step title="Deduplicate">
+    Prevents duplicate tasks from appearing in today's note
+  </Step>
+  <Step title="Prepend to today">
+    Adds all rolled-over tasks to the top of today's note
+  </Step>
+</Steps>
+
+### Implementation
+
+```typescript
+export async function rolloverTasks(days: number = 30): Promise<boolean> {
+  const today = getToday();
+  const taskMap = new Map<string, TaskLine>();
+  const modifiedNotes: DailyNote[] = [];
+
+  // Scan past days
+  for (let i = 1; i <= days; i++) {
+    const date = getDaysAgo(i);
+    const note = await loadDailyNote(date);
+    if (!note || !note.content.trim()) continue;
+    
+    const markdown = json2md(parseJsonContent(note.content));
+    const { tasks, cleaned } = extractUncheckedTasks(markdown);
+    
+    // Collect unchecked tasks
+    if (tasks.length > 0) {
+      tasks.forEach((t) => {
+        if (!taskMap.has(t.text)) {
+          taskMap.set(t.text, t);
+        }
+      });
+      modifiedNotes.push({ ...note, content: JSON.stringify(md2json(cleaned)) });
+    }
+
+    // Check for recurring tasks
+    const checkedRecurring = extractCheckedRecurringTasks(markdown);
+    for (const taskText of checkedRecurring) {
+      const recurrence = parseRecurrence(taskText)!;
+      const nextDue = addDaysToDate(date, recurrence.intervalDays);
+      if (nextDue <= today && !taskMap.has(taskText)) {
+        taskMap.set(taskText, { indent: "", text: taskText });
+      }
+    }
+  }
+
+  if (taskMap.size === 0) return false;
+
+  // Save cleaned source notes
+  await Promise.all(modifiedNotes.map((note) => saveDailyNote(note)));
+  
+  // Update today's note
+  const todayNote = await loadDailyNote(today);
+  const todayMarkdown = todayNote ? json2md(parseJsonContent(todayNote.content)) : "";
+  const existingTasks = extractAllTaskTexts(todayMarkdown);
+  const newTasks = [...taskMap.values()].filter((t) => !existingTasks.has(t.text));
+  
+  if (newTasks.length === 0) return false;
+
+  const updated = prependTasks(todayMarkdown, newTasks);
+  const updatedJson = JSON.stringify(md2json(updated));
+  await saveDailyNote({ date: today, content: updatedJson, city: todayNote?.city });
+  
+  return true;
+}
+```
+
+## Nested Tasks
+
+Philo preserves task hierarchy during rollover:
+
+```typescript
+interface TaskLine {
+  indent: string;  // Preserved whitespace for nesting
+  text: string;    // Task text including any tags
+}
+
+function extractUncheckedTasks(content: string): { 
+  tasks: TaskLine[]; 
+  cleaned: string; 
+} {
+  const lines = content.split("\n");
+  const tasks: TaskLine[] = [];
+  const kept: string[] = [];
+
+  for (const line of lines) {
+    const match = line.match(UNCHECKED_TASK);
+    if (match) {
+      tasks.push({ indent: match[1], text: match[2] });
+    } else {
+      kept.push(line);
+    }
+  }
+
+  let cleaned = kept.join("\n");
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n").trim();
+
+  return { tasks, cleaned };
+}
+```
+
+### Example
+
+<CodeGroup>
+```markdown Before Rollover (Yesterday)
+- [ ] Complete project proposal
+  - [ ] Draft outline
+  - [x] Research competitors
+  - [ ] Create budget
+- [x] Email team
+```
+
+```markdown After Rollover (Today)
+- [ ] Complete project proposal
+  - [ ] Draft outline
+  - [ ] Create budget
+
+Existing content from today...
+```
+</CodeGroup>
+
+<Note>
+Completed subtasks are not rolled over, maintaining a clean task list.
+</Note>
+
+## Task Deduplication
+
+To prevent duplicates, Philo checks existing tasks in today's note:
+
+```typescript
+function extractAllTaskTexts(content: string): Set<string> {
+  const lines = content.split("\n");
+  const texts = new Set<string>();
+
+  for (const line of lines) {
+    const unchecked = line.match(UNCHECKED_TASK);
+    if (unchecked) texts.add(unchecked[2]);
+
+    const checked = line.match(CHECKED_TASK);
+    if (checked) texts.add(checked[2]);
+  }
+
+  return texts;
+}
+```
+
+Tasks are matched by their full text, including any tags or metadata.
+
+## Prepending Tasks
+
+Rolled-over tasks are added to the beginning of today's note:
+
+```typescript
+function prependTasks(content: string, tasks: TaskLine[]): string {
+  if (tasks.length === 0) return content;
+
+  const taskLines = tasks.map((t) => `${t.indent}- [ ] ${t.text}`).join("\n");
+  const trimmed = content.trim();
+  if (!trimmed) return `\n\n\n${taskLines}`;
+  return `${taskLines}\n\n${trimmed}`;
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use consistent syntax" icon="check">
+    Stick with either `-` or `*` for list markers to maintain consistency
+  </Card>
+  <Card title="Add context" icon="message">
+    Include enough detail in task text so it's meaningful when rolled over
+  </Card>
+  <Card title="Nest related tasks" icon="sitemap">
+    Group subtasks under parent tasks to maintain logical structure
+  </Card>
+  <Card title="Use recurring tasks" icon="repeat">
+    Add recurrence tags like #daily for habits and routine tasks
+  </Card>
+</CardGroup>
+
+<Tip>
+Run task rollover when you first open Philo each day to start with a clean, updated task list.
+</Tip>

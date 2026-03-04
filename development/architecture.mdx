@@ -1,0 +1,288 @@
+---
+title: Architecture Overview
+description: Understand Philo's hybrid Tauri + React architecture and how components work together
+---
+
+## Introduction
+
+Philo is a modern desktop application built using **Tauri 2.0**, combining a Rust backend with a React frontend. This hybrid architecture provides native performance, security, and cross-platform compatibility while leveraging the rich ecosystem of web technologies for the user interface.
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Philo Desktop App                     │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌────────────────────────────────────────────────┐    │
+│  │         React Frontend (TypeScript)             │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  UI Components (Tailwind CSS)            │  │    │
+│  │  │  - AppLayout, EditableNote, Settings    │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  TipTap Editor + Extensions              │  │    │
+│  │  │  - Widget, Excalidraw, Hashtag, Table   │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  Services (TypeScript)                   │  │    │
+│  │  │  - Storage, Library, Obsidian, Images   │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  └────────────────────────────────────────────────┘    │
+│                          ▲                              │
+│                          │ @tauri-apps/api             │
+│                          ▼                              │
+│  ┌────────────────────────────────────────────────┐    │
+│  │         Rust Backend (Tauri Core)               │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  Tauri Commands (IPC Bridge)             │  │    │
+│  │  │  - File I/O, Search, Vault Operations   │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  Native OS Integration                   │  │    │
+│  │  │  - File System, Dialog, Process, Menu   │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  │  ┌──────────────────────────────────────────┐  │    │
+│  │  │  SQLite + FTS5 (Full-Text Search)       │  │    │
+│  │  └──────────────────────────────────────────┘  │    │
+│  └────────────────────────────────────────────────┘    │
+│                          ▲                              │
+│                          │                              │
+│                          ▼                              │
+│  ┌────────────────────────────────────────────────┐    │
+│  │        Native Operating System                  │    │
+│  │     File System, Markdown Files, Assets        │    │
+│  └────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Core Components
+
+### 1. Tauri Backend (Rust)
+
+The Rust backend (`src-tauri/`) provides:
+
+- **Tauri Commands**: Exposed Rust functions callable from JavaScript via IPC (Inter-Process Communication)
+- **File I/O Operations**: Reading and writing markdown files with error handling
+- **Markdown Operations**: Parsing frontmatter, extracting titles, searching content
+- **Vault Management**: Obsidian vault detection, folder structure management
+- **Full-Text Search**: SQLite with FTS5 for fast content search across markdown files
+- **Native OS Integration**: Menu building (macOS), window opacity, process management
+
+**Key Tauri Commands:**
+
+- `read_markdown_file(path)` - Read markdown file content
+- `write_markdown_file(path, content)` - Write markdown file with directory creation
+- `search_markdown(root_dir, query)` - Full-text search using SQLite FTS5
+- `detect_obsidian_settings(vault_path)` - Auto-detect Obsidian configuration
+- `bootstrap_obsidian_vault(vault_path, options)` - Initialize vault structure
+- `scan_obsidian_vaults(start_dir)` - Discover Obsidian vaults on filesystem
+- `extend_fs_scope(path)` - Dynamically extend file system permissions
+- `set_window_opacity(opacity)` - macOS-specific window transparency
+
+### 2. React Frontend (TypeScript)
+
+The React frontend (`src/`) handles all UI rendering and user interactions:
+
+- **Component Architecture**: Modular React components organized by feature
+- **TipTap Editor**: Rich text editing with custom extensions
+- **State Management**: React hooks (useState, useEffect, custom hooks)
+- **Styling**: Tailwind CSS with custom typography plugin
+- **Type Safety**: Full TypeScript coverage with strict mode
+
+### 3. Build System
+
+- **Vite**: Fast development server and optimized production builds
+- **HMR (Hot Module Replacement)**: Instant feedback during development
+- **TypeScript Compiler**: Type checking and transpilation
+- **Tauri CLI**: Orchestrates Rust compilation and frontend bundling
+
+## Data Flow
+
+### Reading Markdown Files
+
+```
+1. User selects a date in the UI
+   ↓
+2. React component calls saveDailyNote() service
+   ↓
+3. Service invokes Tauri command: read_markdown_file(path)
+   ↓
+4. Rust reads file from filesystem
+   ↓
+5. Markdown content returned to React via IPC
+   ↓
+6. parseJsonContent() converts markdown to TipTap JSON
+   ↓
+7. TipTap editor renders content with extensions
+   ↓
+8. User sees formatted note with widgets, images, tasks
+```
+
+### Writing Markdown Files
+
+```
+1. User types in TipTap editor
+   ↓
+2. Editor fires onUpdate event (debounced 500ms)
+   ↓
+3. TipTap JSON serialized to markdown format
+   ↓
+4. saveDailyNote() service called with updated content
+   ↓
+5. Tauri command invoked: write_markdown_file(path, content)
+   ↓
+6. Rust creates parent directories if needed
+   ↓
+7. File written to disk atomically
+   ↓
+8. Success/error returned to React
+```
+
+### Full-Text Search
+
+```
+1. User enters search query in Library
+   ↓
+2. searchMarkdown() service invoked
+   ↓
+3. Tauri command: search_markdown(root_dir, query)
+   ↓
+4. Rust checks SQLite FTS5 index freshness
+   ↓
+5. If stale, reindex all markdown files
+   ↓
+6. Execute FTS5 query with BM25 ranking
+   ↓
+7. Results with snippets returned to React
+   ↓
+8. Library component renders search results
+```
+
+### Widget Generation and Rendering
+
+```
+1. User inserts widget with prompt (/widget command)
+   ↓
+2. WidgetExtension creates widget node in editor
+   ↓
+3. generateWidget() service calls AI API (external)
+   ↓
+4. AI returns JSON-Render spec (declarative UI)
+   ↓
+5. Widget spec stored in editor node attributes
+   ↓
+6. WidgetView component renders using @json-render/react
+   ↓
+7. Interactive widget displayed in editor
+   ↓
+8. On save, widget spec serialized to markdown code block
+```
+
+## Security Model
+
+Tauri provides a robust security model:
+
+- **IPC Validation**: All commands validated at Rust boundary
+- **Scoped File System**: Frontend can only access explicitly allowed paths
+- **Asset Protocol**: Secure image/file loading with scope restrictions
+- **No Remote Code Execution**: Frontend cannot execute arbitrary system commands
+- **Content Security Policy**: Configurable CSP for webview content
+
+## Extension Points
+
+### Custom TipTap Extensions
+
+Philo extends TipTap with custom node types:
+
+- **WidgetExtension**: Embeds interactive UI components using JSON-Render
+- **ExcalidrawExtension**: Embeds Excalidraw diagrams with live editing
+- **HashtagExtension**: Syntax highlighting and navigation for hashtags
+- **CustomTaskItem**: Enhanced task items with better markdown serialization
+- **CustomParagraph**: Improved paragraph handling for markdown compatibility
+
+Each extension defines:
+
+- **Node Schema**: Structure and attributes
+- **Parsing Rules**: Markdown → TipTap JSON
+- **Serialization Rules**: TipTap JSON → Markdown
+- **NodeView**: React component for rendering (if needed)
+- **Commands**: Editor commands for insertion/manipulation
+
+### Service Layer
+
+Services abstract business logic and Tauri command invocations:
+
+- `storage.ts` - Daily note CRUD operations
+- `library.ts` - Search, collections, library management
+- `obsidian.ts` - Vault detection, settings parsing, bootstrapping
+- `images.ts` - Image handling, asset URL resolution
+- `excalidraw.ts` - Excalidraw data compression and decompression
+- `generate.ts` - Widget generation via AI API
+- `tasks.ts` - Task extraction and manipulation
+- `format.ts` - Date formatting utilities
+- `paths.ts` - Path resolution and normalization
+
+## Performance Considerations
+
+### Rust Backend
+
+- File I/O operations are synchronous but fast (native performance)
+- SQLite FTS5 provides millisecond search times for thousands of documents
+- Incremental indexing: Only reindex modified files based on mtime
+- Directory traversal skips common non-vault folders (node_modules, .git, etc.)
+
+### React Frontend
+
+- Debounced saves (500ms) prevent excessive file writes
+- TipTap uses ProseMirror for efficient document updates
+- Virtual scrolling for large lists (library, search results)
+- Lazy loading of images and heavy components
+- React.StrictMode enabled for development safety
+
+### Communication Overhead
+
+- IPC calls are fast (typically &lt;1ms for simple commands)
+- Large payloads (markdown content) compressed when necessary
+- Batch operations where possible to reduce round trips
+
+## Cross-Platform Support
+
+Philo supports macOS, Windows, and Linux:
+
+- Platform-specific code uses `#[cfg(target_os)]` directives
+- macOS-specific features: window opacity, process name
+- Paths normalized for each OS (/ vs \\)
+- Asset protocol scope accounts for different app data locations
+
+## Development Workflow
+
+```bash
+# Start development server (frontend + backend hot reload)
+bun run dev
+
+# Type check TypeScript
+bun run typecheck
+
+# Build for production
+bun run build
+
+# Run Tauri in development mode
+bun run tauri dev
+
+# Build Tauri app bundle
+bun run tauri build
+```
+
+The Tauri CLI automatically:
+
+1. Starts Vite dev server on port 1421
+2. Compiles Rust backend with hot reload
+3. Opens webview window with HMR enabled
+4. Watches both frontend and backend for changes
+
+## Next Steps
+
+- [Tech Stack](/development/tech-stack) - Detailed breakdown of all dependencies
+- [File Structure](/development/file-structure) - Complete directory organization
+- [Contributing](/development/contributing) - Learn how to contribute to Philo

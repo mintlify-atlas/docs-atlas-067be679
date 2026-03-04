@@ -1,0 +1,412 @@
+---
+title: 'Widget Library'
+description: 'Save and reuse AI-generated widgets across your journal'
+---
+
+The Widget Library stores your AI-generated widgets as reusable components that can be inserted into any journal entry.
+
+## Overview
+
+Widgets saved from Sophia are stored as individual `.component.md` files in a library directory, making them portable, version-controllable, and easy to browse.
+
+### Key Features
+
+<CardGroup cols={2}>
+  <Card title="Persistent Storage" icon="database">
+    Widgets saved as markdown files with frontmatter metadata
+  </Card>
+  <Card title="Reusable Components" icon="recycle">
+    Insert saved widgets into any journal entry
+  </Card>
+  <Card title="Portable Format" icon="file-export">
+    Standard markdown format for backup and sharing
+  </Card>
+  <Card title="Version Control" icon="code-branch">
+    Text-based format works with git and other VCS
+  </Card>
+</CardGroup>
+
+## File Format
+
+Each widget is stored as a `.component.md` file with YAML frontmatter:
+
+```markdown
+---
+id: "550e8400-e29b-41d4-a716-446655440000"
+title: "Weekly Workout Stats"
+description: "Show my workout stats with exercises completed, total duration, and calories burned"
+prompt: "Show my workout stats with exercises completed, total duration, and calories burned"
+savedAt: "2026-03-04T10:30:00.000Z"
+---
+
+```json
+{
+  "root": "main-card",
+  "elements": {
+    "main-card": {
+      "type": "Card",
+      "props": { "title": "Workout Stats", "padding": "md" },
+      "children": ["metrics-grid"]
+    },
+    "metrics-grid": {
+      "type": "Grid",
+      "props": { "columns": 3, "gap": "md" },
+      "children": ["metric-1", "metric-2", "metric-3"]
+    },
+    "metric-1": {
+      "type": "Metric",
+      "props": { "label": "Exercises", "value": "12", "unit": "sets" },
+      "children": []
+    },
+    "metric-2": {
+      "type": "Metric",
+      "props": { "label": "Duration", "value": "45", "unit": "min" },
+      "children": []
+    },
+    "metric-3": {
+      "type": "Metric",
+      "props": { "label": "Calories", "value": "350", "unit": "kcal" },
+      "children": []
+    }
+  }
+}
+```
+```
+
+### Frontmatter Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string (UUID) | Unique identifier |
+| `title` | string | Display name derived from prompt |
+| `description` | string | Full prompt or description |
+| `prompt` | string | Original Sophia prompt |
+| `savedAt` | string (ISO 8601) | Timestamp when saved |
+
+<Note>
+The JSON spec is stored in a code fence for proper syntax highlighting and parsing.
+</Note>
+
+## Library Interface
+
+```typescript
+export interface LibraryItem {
+  id: string;
+  title: string;
+  description: string;
+  html: string;        // JSON spec as string
+  prompt: string;
+  savedAt: string;
+}
+```
+
+## Storage Location
+
+Widgets are stored in a `library/` subdirectory:
+
+```typescript
+async function getLibraryDir(): Promise<string> {
+  const vaultDir = (await getVaultDirSetting()).trim();
+  if (vaultDir) return await join(vaultDir, "library");
+  const journalDir = await getJournalDir();
+  return await join(journalDir, "library");
+}
+```
+
+Default locations:
+- With vault: `{vault}/library/`
+- Without vault: `{journal}/library/`
+
+## File Naming
+
+Filenames are generated from the title and ID:
+
+```typescript
+function slugify(input: string): string {
+  const slug = input.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "component";
+}
+
+const filename = `${slugify(item.title)}-${item.id}.component.md`;
+```
+
+**Example:** `weekly-workout-stats-550e8400.component.md`
+
+## Adding to Library
+
+```typescript
+export async function addToLibrary(
+  item: Omit<LibraryItem, "id" | "savedAt">
+): Promise<LibraryItem> {
+  const newItem: LibraryItem = {
+    ...item,
+    id: crypto.randomUUID(),
+    savedAt: new Date().toISOString(),
+  };
+  await writeComponentFile(newItem);
+  return newItem;
+}
+```
+
+### Usage Example
+
+```typescript
+// Save widget from editor
+await addToLibrary({
+  title: "Weekly Goals",
+  description: "Track weekly goal completion",
+  html: JSON.stringify(widgetSpec),
+  prompt: "Show my weekly goals with progress bars",
+});
+```
+
+## Loading from Library
+
+```typescript
+export async function loadLibrary(): Promise<LibraryItem[]> {
+  let items = await listComponentItems();
+  if (items.length === 0) {
+    items = await migrateLegacyLibraryJson();
+  }
+  return items.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+```
+
+Items are sorted by `savedAt` in descending order (newest first).
+
+## Parsing Component Files
+
+```typescript
+function parseComponentMarkdown(raw: string): LibraryItem | null {
+  const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+  if (!match) return null;
+
+  const meta: Record<string, string> = {};
+  for (const line of match[1].split("\n")) {
+    const separator = line.indexOf(":");
+    if (separator < 0) continue;
+    const key = line.slice(0, separator).trim();
+    if (!key) continue;
+    meta[key] = frontmatterValue(line.slice(separator + 1));
+  }
+
+  const specMatch = match[2].match(/```(?:json|jsonc|json-render|jsonui)?\n([\s\S]*?)```/);
+  const spec = specMatch?.[1]?.trim();
+  if (!meta.id || !meta.title || !meta.prompt || !meta.savedAt || !spec) return null;
+
+  return {
+    id: meta.id,
+    title: meta.title,
+    description: meta.description ?? meta.prompt,
+    html: spec,
+    prompt: meta.prompt,
+    savedAt: meta.savedAt,
+  };
+}
+```
+
+### Frontmatter Parsing
+
+```typescript
+function frontmatterValue(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  try {
+    const parsed = JSON.parse(trimmed);
+    return typeof parsed === "string" ? parsed : String(parsed);
+  } catch {
+    return trimmed;
+  }
+}
+```
+
+Values can be plain text or JSON-encoded strings.
+
+## Serializing Components
+
+```typescript
+function serializeComponentMarkdown(item: LibraryItem): string {
+  const spec = (() => {
+    try {
+      return JSON.stringify(JSON.parse(item.html), null, 2);
+    } catch {
+      return item.html.trim();
+    }
+  })();
+  return [
+    "---",
+    `id: ${JSON.stringify(item.id)}`,
+    `title: ${JSON.stringify(item.title)}`,
+    `description: ${JSON.stringify(item.description)}`,
+    `prompt: ${JSON.stringify(item.prompt)}`,
+    `savedAt: ${JSON.stringify(item.savedAt)}`,
+    "---",
+    "",
+    "```json",
+    spec,
+    "```",
+    "",
+  ].join("\n");
+}
+```
+
+<Tip>
+JSON specs are pretty-printed with 2-space indentation for readability.
+</Tip>
+
+## Removing from Library
+
+```typescript
+export async function removeFromLibrary(id: string): Promise<void> {
+  const libraryDir = await ensureLibraryDir();
+  const entries = await readDir(libraryDir);
+  for (const entry of entries) {
+    if (!entry.isFile || !entry.name.toLowerCase().endsWith(COMPONENT_SUFFIX)) continue;
+    const path = await join(libraryDir, entry.name);
+    try {
+      const raw = await readTextFile(path);
+      const item = parseComponentMarkdown(raw);
+      if (item?.id === id) {
+        await remove(path);
+        return;
+      }
+    } catch {
+      continue;
+    }
+  }
+}
+```
+
+## Legacy Migration
+
+Philo automatically migrates from the old `library.json` format:
+
+```typescript
+async function migrateLegacyLibraryJson(): Promise<LibraryItem[]> {
+  const path = await getLibraryPath();
+  if (!(await exists(path))) return [];
+
+  try {
+    const raw = await readTextFile(path);
+    const parsed = JSON.parse(raw) as LibraryItem[];
+    if (!Array.isArray(parsed) || parsed.length === 0) return [];
+    
+    const migrated = parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const id = typeof item.id === "string" && item.id ? item.id : crypto.randomUUID();
+        const savedAt = typeof item.savedAt === "string" && item.savedAt 
+          ? item.savedAt 
+          : new Date().toISOString();
+        const title = typeof item.title === "string" ? item.title : "Component";
+        const description = typeof item.description === "string" ? item.description : "";
+        const prompt = typeof item.prompt === "string" ? item.prompt : "";
+        const html = typeof item.html === "string" ? item.html : "";
+        if (!prompt || !html) return null;
+        return { id, title, description, prompt, html, savedAt };
+      })
+      .filter((item): item is LibraryItem => item !== null);
+      
+    await Promise.all(migrated.map((item) => writeComponentFile(item)));
+    return migrated;
+  } catch {
+    return [];
+  }
+}
+```
+
+<Note>
+Migration runs automatically on first library load if no `.component.md` files exist.
+</Note>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use descriptive titles" icon="heading">
+    Choose clear, specific titles that describe the widget's purpose
+  </Card>
+  <Card title="Keep prompts in sync" icon="arrows-rotate">
+    The prompt field helps you remember how to recreate or modify widgets
+  </Card>
+  <Card title="Backup your library" icon="cloud-arrow-up">
+    Library files are portable—back them up with your journal data
+  </Card>
+  <Card title="Version control" icon="code-commit">
+    Commit `.component.md` files to git to track widget evolution
+  </Card>
+</CardGroup>
+
+## File System Operations
+
+All library operations use Tauri's filesystem APIs:
+
+```typescript
+import { readDir, readTextFile, writeTextFile, remove } from "@tauri-apps/plugin-fs";
+
+// List all component files
+const entries = await readDir(libraryDir);
+const componentFiles = entries.filter(
+  entry => entry.isFile && entry.name.endsWith(".component.md")
+);
+
+// Read a component file
+const content = await readTextFile(filePath);
+const item = parseComponentMarkdown(content);
+
+// Write a component file
+const markdown = serializeComponentMarkdown(item);
+await writeTextFile(filePath, markdown);
+
+// Delete a component file
+await remove(filePath);
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Widget not appearing in library">
+    - Check that the file has `.component.md` extension
+    - Verify frontmatter is valid YAML
+    - Ensure JSON spec is in a code fence
+    - Confirm all required fields are present
+  </Accordion>
+  
+  <Accordion title="Parsing errors">
+    - Validate JSON spec is well-formed
+    - Check for missing or extra quotes in frontmatter values
+    - Ensure frontmatter ends with `---`
+  </Accordion>
+  
+  <Accordion title="File permission issues">
+    - Verify library directory exists and is writable
+    - Check Tauri filesystem permissions
+    - Try manually creating the library directory
+  </Accordion>
+  
+  <Accordion title="Migration not working">
+    - Confirm `library.json` exists in expected location
+    - Check JSON is valid and matches `LibraryItem[]` structure
+    - Look for errors in console logs
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+Manually editing `.component.md` files requires careful attention to YAML and JSON syntax. Invalid files will be skipped during library loading.
+</Warning>
+
+## Example Library Structure
+
+```
+library/
+├── weekly-workout-stats-550e8400.component.md
+├── reading-progress-tracker-3f2b1c90.component.md
+├── habit-tracker-weekly-7a4d2e10.component.md
+└── project-status-dashboard-9c8f3a20.component.md
+```
+
+Each file is a self-contained widget definition that can be:
+- Browsed in any text editor
+- Searched with grep/ripgrep
+- Committed to version control
+- Shared with other Philo users
+- Backed up with standard tools
