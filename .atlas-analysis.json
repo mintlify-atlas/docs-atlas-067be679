@@ -1,0 +1,97 @@
+{
+  "projectType": "saas",
+  "projectName": "Philo",
+  "projectDescription": "A daily journaling app that builds custom interactive widgets using AI",
+  "theme": "palm",
+  "primaryColor": "#7c3aed",
+  "lightColor": "#a78bfa",
+  "darkColor": "#6d28d9",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/journaling",
+              "features/tasks",
+              "features/recurring-tasks",
+              "features/ai-widgets",
+              "features/widget-library",
+              "features/images"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/keyboard-shortcuts",
+              "guides/data-storage",
+              "guides/settings",
+              "guides/customization"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "use-cases/daily-journaling",
+              "use-cases/habit-tracking",
+              "use-cases/project-planning"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Architecture",
+            "pages": [
+              "development/architecture",
+              "development/tech-stack",
+              "development/file-structure"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/setup",
+              "development/building",
+              "development/contributing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Daily timeline view (tomorrow, today, past)",
+    "Automatic task rollover",
+    "Recurring tasks with flexible intervals",
+    "AI-powered widget generation",
+    "Widget library for reusable components",
+    "Local markdown storage",
+    "Image paste and drag-and-drop support",
+    "Dark mode support"
+  ],
+  "publicApiSurface": [
+    "generateWidget(prompt: string): Promise<Spec>",
+    "rolloverTasks(days?: number): Promise<boolean>",
+    "parseRecurrence(text: string): Recurrence | null",
+    "loadLibrary(): Promise<LibraryItem[]>",
+    "addToLibrary(item: Omit<LibraryItem, 'id' | 'savedAt'>): Promise<LibraryItem>",
+    "removeFromLibrary(id: string): Promise<void>",
+    "saveDailyNote(note: DailyNote): Promise<void>",
+    "loadDailyNote(date: string): Promise<DailyNote | null>",
+    "getOrCreateDailyNote(date: string): Promise<DailyNote>",
+    "loadPastNotes(days?: number): Promise<DailyNote[]>"
+  ]
+}
